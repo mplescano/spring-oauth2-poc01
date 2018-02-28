@@ -17,7 +17,7 @@ drop table if exists oauth_client_token;
 create table oauth_client_token (
   authentication_id VARCHAR(255) PRIMARY KEY,
   token_id VARCHAR(255),
-  token LONGVARCHAR,
+  token BLOB,
   user_name VARCHAR(255),
   client_id VARCHAR(255)
 );
@@ -26,24 +26,24 @@ drop table if exists oauth_access_token;
 create table oauth_access_token (
   authentication_id VARCHAR(255) PRIMARY KEY,
   token_id VARCHAR(255),
-  token LONGVARCHAR,
+  token BLOB,
   user_name VARCHAR(255),
   client_id VARCHAR(255),
-  authentication LONGVARCHAR,
+  authentication BLOB,
   refresh_token VARCHAR(255)
 );
  
 drop table if exists oauth_refresh_token;
 create table oauth_refresh_token (
   token_id VARCHAR(255),
-  token LONGVARCHAR,
-  authentication LONGVARCHAR
+  token BLOB,
+  authentication BLOB
 );
  
 drop table if exists oauth_code;
 create table oauth_code (
   code VARCHAR(255),
-  authentication LONGVARCHAR
+  authentication BLOB
 );
  
 drop table if exists oauth_approvals;

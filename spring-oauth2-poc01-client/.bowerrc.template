@@ -1,0 +1,6 @@
+{
+  "proxy": "http://user:pass@host:port",
+  "https-proxy": "http://user:pass@host:port",
+  "no-proxy": "localhost|*.maindomain|instranet01|intranet|127.0.0.1|192.168.*|10.*",
+  "directory": "target/dist/libs"
+}

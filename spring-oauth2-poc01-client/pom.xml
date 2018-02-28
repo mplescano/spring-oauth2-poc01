@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.mplescano.oauth.poc</groupId>
+        <artifactId>spring-oauth2-poc01</artifactId>
+        <version>1.4.3</version>
+    </parent>
+    <artifactId>spring-oauth2-poc01-client</artifactId>
+    <name>Client</name>
+
+    <properties>
+        <java.version>1.7</java.version>
+        <node.version>v4.4.3</node.version>
+        <npm.version>2.15.1</npm.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <configuration>
+                    <installDirectory>${basedir}</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                            <npmVersion>${npm.version}</npmVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>bower install</id>
+                        <goals>
+                            <goal>bower</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>gulp build</id>
+                        <goals>
+                            <goal>gulp</goal>
+                        </goals>
+                    </execution>
+                    <!-- https://github.com/bower/bower/issues/1184 -->
+                    <execution>
+                        <id>bower-cache-clean</id>
+                        <goals>
+                            <goal>bower</goal>
+                        </goals>
+                        <phase>clean</phase>
+                        <configuration>
+                            <arguments>cache clean</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bower-install---force</id>
+                        <goals>
+                            <goal>bower</goal>
+                        </goals>
+                        <phase>clean</phase>
+                        <configuration>
+                            <arguments>install --force</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bower-prune</id>
+                        <goals>
+                            <goal>bower</goal>
+                        </goals>
+                        <phase>clean</phase>
+                        <configuration>
+                            <arguments>prune</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources-1</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/public/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/webapp</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

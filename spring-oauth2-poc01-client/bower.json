@@ -1,0 +1,31 @@
+{
+  "name": "spring-oauth2-poc1-client",
+  "description": "Spring Oauth2 AngularJS client application",
+  "main": "",
+  "authors": [
+    "MPLB <mplescano@>"
+  ],
+  "license": "Apache 2.0",
+  "homepage": "https://github.com/mplescano/spring-oauth2-poc01",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.5.9",
+    "angular-resource": "~1.5.9",
+    "bootstrap": "components/bootstrap#~3.3.7",
+    "angular-route": "~1.5.9",
+    "angular-bootstrap": "~2.4.0",
+    "ngstorage": "0.3.11",
+    "oauth-ng": "0.4.10"
+  },
+  "resolutions": {
+    "angular": "^1.0.8"
+  }
+}
