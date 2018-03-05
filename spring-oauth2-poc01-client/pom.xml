@@ -39,6 +39,8 @@
                 <executions>
                     <execution>
                         <id>install node and npm</id>
+				        <!-- optional: default phase is "generate-resources" -->
+				        <phase>generate-resources</phase>
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
@@ -49,18 +51,24 @@
                     </execution>
                     <execution>
                         <id>npm install</id>
+				        <!-- optional: default phase is "generate-resources" -->
+				        <phase>generate-resources</phase>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>bower install</id>
+				        <!-- optional: default phase is "generate-resources" -->
+				        <phase>generate-resources</phase>
                         <goals>
                             <goal>bower</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>gulp build</id>
+				        <!-- optional: default phase is "generate-resources" -->
+				        <phase>generate-resources</phase>
                         <goals>
                             <goal>gulp</goal>
                         </goals>
@@ -68,30 +76,30 @@
                     <!-- https://github.com/bower/bower/issues/1184 -->
                     <execution>
                         <id>bower-cache-clean</id>
+                        <phase>clean</phase>
                         <goals>
                             <goal>bower</goal>
                         </goals>
-                        <phase>clean</phase>
                         <configuration>
                             <arguments>cache clean</arguments>
                         </configuration>
                     </execution>
                     <execution>
                         <id>bower-install---force</id>
+                        <phase>clean</phase>
                         <goals>
                             <goal>bower</goal>
                         </goals>
-                        <phase>clean</phase>
                         <configuration>
                             <arguments>install --force</arguments>
                         </configuration>
                     </execution>
                     <execution>
                         <id>bower-prune</id>
+						<phase>clean</phase>
                         <goals>
                             <goal>bower</goal>
                         </goals>
-                        <phase>clean</phase>
                         <configuration>
                             <arguments>prune</arguments>
                         </configuration>
@@ -104,11 +112,12 @@
                 <executions>
                     <execution>
                         <id>copy-resources-1</id>
-                        <phase>validate</phase>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
+                        	<overwrite>true</overwrite>
                             <outputDirectory>${project.build.directory}/classes/public/</outputDirectory>
                             <resources>
                                 <resource>

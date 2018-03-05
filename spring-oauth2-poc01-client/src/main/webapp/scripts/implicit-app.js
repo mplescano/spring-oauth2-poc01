@@ -18,7 +18,23 @@ app.config([ '$httpProvider', function($httpProvider) {
 	});
 } ]);
 
-app.controller('mainCtrl', function($scope, $resource, $http, $rootScope) {
+app.controller('mainCtrl', function($scope, $compile, $resource, $http, $rootScope) {
+    
+    var oauthElement = angular.element(
+            '<oauth ng-cloak site="http://' + GLB_HOSTNAME + ':8080" ' +
+              'client-id="sampleClientId" ' +
+              'redirect-uri="http://' + GLB_HOSTNAME + ':8070/implicit" ' +
+              'scope="read write foo bar" ' +
+              'template="implicit-panel.html" ' +
+              '>' +
+              '</oauth>'
+        );
+    var compiledOauthElement = $compile(oauthElement)($scope);
+    var elDivOauth = document.getElementById('oauth');
+    if (elDivOauth != null) {
+        elDivOauth.replaceWith(compiledOauthElement[0]);
+    }
+    
 					$scope.$on('oauth:login', function(event, token) {
 						$http.defaults.headers.common.Authorization = 'Bearer ' + token.access_token;
 						console.log('Authorized third party app with token', token.access_token);
@@ -28,7 +44,7 @@ app.controller('mainCtrl', function($scope, $resource, $http, $rootScope) {
 						id : 0,
 						name : "sample foo"
 					};
-					$scope.foos = $resource("http://localhost:8090/foos/:fooId",
+					$scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId",
 							{
 								fooId : '@id'
 							});
@@ -48,14 +64,13 @@ app.controller('mainCtrl', function($scope, $resource, $http, $rootScope) {
 						});
 					}
 
-					$scope.revokeToken = $resource("http://localhost:8080/oauth/token/revokeById/:tokenId",
+					$scope.revokeToken = $resource("http://" + GLB_HOSTNAME + ":8080/tokens/revokeById/:tokenId",
 							{
 								tokenId : '@tokenId'
-							});
-					$scope.tokens = $resource("http://localhost:8080/tokens");
+							}, {save:{method:'POST', withCredentials:true}});
+					$scope.tokens = $resource("http://" + GLB_HOSTNAME + ":8080/tokens", {}, {query:{withCredentials:true, isArray: true}}, {});
 					$scope.getTokens = function() {
 						$scope.tokenList = $scope.tokens.query();
-						console.log('$scope.tokenList:', $scope.tokenList);
 					}
 					$scope.revokeAccessToken = function() {
 						if ($scope.tokenToRevoke && $scope.tokenToRevoke.length != 0) {

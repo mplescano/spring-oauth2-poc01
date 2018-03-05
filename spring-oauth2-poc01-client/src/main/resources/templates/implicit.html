@@ -12,6 +12,13 @@
     <script th:src="@{/libs/oauth-ng/dist/oauth-ng.js}"></script>
     
     <script th:src="@{/scripts/implicit-app.js}"></script>
+    
+    <script th:inline="javascript" type="text/javascript">
+    /*<![CDATA[*/
+    	var GLB_HOSTNAME = /*[[${@environment.getProperty('app.server.hostname')}]]*/ 'localhost';
+    	var GLB_CONTEXT = /*[[@{/}]]*/ '/';
+    /*]]>*/
+    </script>
 </head>
 <body ng-controller="mainCtrl">
     <div>
@@ -22,13 +29,14 @@
                 </div>
             </div><!-- /.container-fluid -->
         </nav>
-        <oauth
+        <div id="oauth"></div>
+        <!-- <oauth
             site="http://localhost:8080"
             client-id="sampleClientId"
             redirect-uri="http://localhost:8070/implicit"
             scope="read write foo bar"
             template="implicit-panel.html">
-        </oauth>
+        </oauth>-->
     </div>
     <div class="container">
         <div class="alert alert-info" ng-show="message">{{message}}</div>
