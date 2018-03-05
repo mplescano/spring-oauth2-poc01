@@ -29,7 +29,7 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
       // @formatter:off
       http.sessionManagement()
           //.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-          .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+          .sessionCreationPolicy(SessionCreationPolicy.STATELESS)//in order to avoid overwriting the cookie of oauth server
           .and()
           .authorizeRequests().anyRequest().permitAll();
   // @formatter:on        
