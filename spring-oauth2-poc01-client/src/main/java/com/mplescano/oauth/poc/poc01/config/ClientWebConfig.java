@@ -25,7 +25,8 @@ public class ClientWebConfig extends WebMvcConfigurerAdapter {
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("forward:index");
         registry.addViewController("/index");
-        registry.addViewController("/implicit").setViewName("implicit");
+        registry.addViewController("/implicit");
+        registry.addViewController("/explicit");
     }
  
 }

@@ -1,0 +1,18 @@
+
+<h1 class="col-sm-12">Foo Details</h1>
+<div class="col-sm-12">
+    <label class="col-sm-3">ID</label> <span>{{foo.id}}</span>
+</div>
+
+<div class="col-sm-12">
+    <label class="col-sm-3">Name</label> <span>{{foo.name}}</span>
+</div>
+
+<div class="col-sm-12">
+    <a class="btn btn-default" href="#" ng-click="getFoo()">New Foo</a>
+</div>
+
+<div class="col-sm-12">
+    <br /> <br /> <a class="btn btn-info" href="#" ng-click="refreshAccessToken()">Refresh Access Token</a> <br /> <br />
+    <a class="btn btn-info" href="#" ng-click="logout()" ng-if="isLoggedIn">Logout</a>
+</div>

@@ -1,48 +1,39 @@
 var app = angular.module('myApp', ["ngResource","ngRoute","ngCookies","angular-jwt"]);
-app.controller('mainCtrl', function($scope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout) {
-    $scope.foo = {id:1 , name:"sample foo"};
-    $scope.foos = $resource("http://localhost:8082/spring-security-oauth-resource/foos/:fooId",{fooId:'@id'});
-    
-    $scope.organiztion = "";
-    $scope.isLoggedIn = false;
-    
-    $scope.getFoo = function(){
-        $scope.foo = $scope.foos.get({fooId:$scope.foo.id});
-    }
-    
-    $scope.loginData = {grant_type:"password", username: "", password: "", client_id: "fooClientIdPassword"};
-    $scope.refreshData = {grant_type:"refresh_token"};
+app.config(function($routeProvider, $httpProvider) {
+	
+    $routeProvider
+    .when('/index',{
+    	controller: 'mainLoginCtrl',
+        templateUrl: 'explicit-index.html',
+        controllerAs: '$ctrl'
+    })
+    .when('/login', {
+    	controller: 'mainIndexCtrl',
+    	templateUrl: 'explicit-login.html',
+        controllerAs: '$ctrl'
+    })
+    .otherwise({ redirectTo: '/index' });
+});
+/*app.config(['$httpProvider', function($httpProvider) {
+    $httpProvider.interceptors.push('rememberMeInterceptor');
+}]);*/
+app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
+    $rootScope.organization = "";
+    $rootScope.isLoggedIn = false;
+
+    $rootScope.loginData = {grant_type:"password", username: "", password: "", client_id: "fooClientIdPassword"};
+    $rootScope.refreshData = {grant_type:"refresh_token"};
         
-    var isLoginPage = window.location.href.indexOf("login") != -1;
-    if(isLoginPage){
-        console.log("is login page");
-        if($cookies.get("access_token")){
-            window.location.href = "index";
-        }
-    }else{
-        if($cookies.get("access_token")){
-            console.log("there is access token");
-            $http.defaults.headers.common.Authorization= 'Bearer ' + $cookies.get("access_token");
-            getOrganization();
-            $scope.isLoggedIn = true;
-        }else{
-            //obtainAccessToken($scope.refreshData);
-            console.log("there is noooo access token");
-            $scope.isLoggedIn = false;
-            window.location.href = "login";
-        }
-    }
-    
-    $scope.login = function() {   
-         obtainAccessToken($scope.loginData);
+    $scope.login = function() {
+         obtainAccessToken($rootScope.loginData);
     }
     
     $scope.refreshAccessToken = function(){
-        obtainAccessToken($scope.refreshData);
+        obtainAccessToken($rootScope.refreshData);
     }
-    
-    $scope.logout = function() {
-        logout($scope.loginData);
+
+    if($cookies.get("access_token")){
+    	$location.path('/index');
     }
     
     if ($cookies.get("remember")=="yes"){
@@ -63,7 +54,7 @@ app.controller('mainCtrl', function($scope,$resource,$http,$httpParamSerializer,
     
         var req = {
             method: 'POST',
-            url: "oauth/token",
+            url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
             headers: {"Content-type": "application/x-www-form-urlencoded; charset=utf-8"},
             data: $httpParamSerializer(params)
         }
@@ -73,10 +64,57 @@ app.controller('mainCtrl', function($scope,$resource,$http,$httpParamSerializer,
                 var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
                 $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
                 $cookies.put("validity", data.data.expires_in);
-                window.location.href="index";
-            },function(){
-                console.log("error");
-                window.location.href = "login";
+                $rootScope.isLoggedIn = true;
+                $location.path('/index');
+            },function(response){
+                console.log("error", response);
+                $rootScope.isLoggedIn = false;
+                //window.location.href = "login";
+            }
+        );
+    }
+    
+
+});
+app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout) {
+    $scope.foo = {id:1 , name:"sample foo"};
+    $scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId", {fooId:'@id'});
+
+    $scope.getFoo = function(){
+        $scope.foo = $scope.foos.get({fooId:$scope.foo.id});
+    }
+
+    if($cookies.get("access_token")){
+        console.log("there is access token");
+        $http.defaults.headers.common.Authorization= 'Bearer ' + $cookies.get("access_token");
+        getOrganization();
+        $rootScope.isLoggedIn = true;
+    }
+    else {
+        console.log("there is noooo access token");
+        $rootScope.isLoggedIn = false;
+        delete $http.defaults.headers.common["Authorization"];
+        $location.path('/login');
+    }
+    
+    $scope.logout = function() {
+        logout($rootScope.loginData);
+    }
+    
+    function logout(params) {
+        var req = {
+            method: 'DELETE',
+            url: "http://" + GLB_HOSTNAME + ":8080/oauth/token"
+        }
+        $http(req).then(
+            function(data){
+                $cookies.remove("access_token");
+                $cookies.remove("validity");
+                $cookies.remove("remember");
+                $location.path('/login');
+                //window.location.href="login";
+            },function(response){
+                console.log("error", response);
             }
         );
     }
@@ -89,31 +127,14 @@ app.controller('mainCtrl', function($scope,$resource,$http,$httpParamSerializer,
         $scope.organization = payload.organization; */
         
         //JDBC
-         $http.get("http://localhost:8082/spring-security-oauth-resource/users/extra")
+         $http.get("http://" + GLB_HOSTNAME + ":8090/users/extra")
         .then(function(response) {
             console.log(response);
-            $scope.organization = response.data.organization;
+            $rootScope.organization = response.data.organization;
         }); 
     }
-    
-    function logout(params) {
-        var req = {
-            method: 'DELETE',
-            url: "oauth/token"
-        }
-        $http(req).then(
-            function(data){
-                $cookies.remove("access_token");
-                $cookies.remove("validity");
-                $cookies.remove("remember");
-                window.location.href="login";
-            },function(){
-                console.log("error");
-            }
-        );
-    }
-    
 });
+/*
 app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', function($q, $injector,$httpParamSerializer) {  
     var interceptor = {
         responseError: function(response) {
@@ -121,12 +142,13 @@ app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', f
                 
                 var $http = $injector.get('$http');
                 var $cookies = $injector.get('$cookies');
+                var $location = $injector.get('$location');
                 var deferred = $q.defer();
                 var refreshData = {grant_type:"refresh_token"};
                 
                 var req = {
                     method: 'POST',
-                    url: "oauth/token",
+                    url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
                     headers: {"Content-type": "application/x-www-form-urlencoded; charset=utf-8"},
                     data: $httpParamSerializer(refreshData)
                 }
@@ -137,11 +159,13 @@ app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', f
                         var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
                         $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
                         $cookies.put("validity", data.data.expires_in);
-                        window.location.href="index";
+                        $location.path('/index')
+                        //window.location.href="index";
                     },function(){
                         console.log("error");
                         $cookies.remove("access_token");
-                        window.location.href = "login";
+                        $location.path('/login')
+                        //window.location.href = "login";
                     }
                 );
                 // make the backend call again and chain the request
@@ -153,7 +177,4 @@ app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', f
         }
     };
     return interceptor;
-}]);
-app.config(['$httpProvider', function($httpProvider) {  
-    $httpProvider.interceptors.push('rememberMeInterceptor');
-}]);
+}]);*/
