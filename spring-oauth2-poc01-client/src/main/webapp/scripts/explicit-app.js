@@ -35,6 +35,9 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
     if($cookies.get("access_token")){
     	$location.path('/index');
     }
+    else {
+    	delete $http.defaults.headers.common["Authorization"];
+    }
     
     if ($cookies.get("remember")=="yes"){
         var validity = $cookies.get("validity");
@@ -83,13 +86,15 @@ app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$http
     $scope.foo = {id:1 , name:"sample foo"};
     $scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId", {fooId:'@id'});
 
+    $scope.encoded = window.btoa("fooClientIdPassword:secret");
+    
     $scope.getFoo = function(){
         $scope.foo = $scope.foos.get({fooId:$scope.foo.id});
     }
 
     if($cookies.get("access_token")){
         console.log("there is access token");
-        $http.defaults.headers.common.Authorization= 'Bearer ' + $cookies.get("access_token");
+        $http.defaults.headers.common.Authorization = 'Bearer ' + $cookies.get("access_token");
         getOrganization();
         $rootScope.isLoggedIn = true;
     }
@@ -107,6 +112,9 @@ app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$http
     function logout(params) {
         var req = {
             method: 'DELETE',
+            headers: {
+                "Authorization": "Basic " + $scope.encoded,
+            },
             url: "http://" + GLB_HOSTNAME + ":8080/oauth/token"
         }
         $http(req).then(
