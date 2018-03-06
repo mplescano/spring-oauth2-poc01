@@ -3,12 +3,12 @@ app.config(function($routeProvider, $httpProvider) {
 	
     $routeProvider
     .when('/index',{
-    	controller: 'mainLoginCtrl',
+    	controller: 'mainIndexCtrl',
         templateUrl: 'explicit-index.html',
         controllerAs: '$ctrl'
     })
     .when('/login', {
-    	controller: 'mainIndexCtrl',
+    	controller: 'mainLoginCtrl',
     	templateUrl: 'explicit-login.html',
         controllerAs: '$ctrl'
     })
@@ -23,7 +23,7 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
 
     $rootScope.loginData = {grant_type:"password", username: "", password: "", client_id: "fooClientIdPassword"};
     $rootScope.refreshData = {grant_type:"refresh_token"};
-        
+    $scope.encoded = window.btoa("fooClientIdPassword:secret");
     $scope.login = function() {
          obtainAccessToken($rootScope.loginData);
     }
@@ -51,11 +51,14 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
                 $cookies.remove("remember");
             }
         }
-    
+
         var req = {
             method: 'POST',
             url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
-            headers: {"Content-type": "application/x-www-form-urlencoded; charset=utf-8"},
+            headers: {
+                "Authorization": "Basic " + $scope.encoded,
+                "Content-type": "application/x-www-form-urlencoded; charset=utf-8"
+            },
             data: $httpParamSerializer(params)
         }
         $http(req).then(
@@ -76,7 +79,7 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
     
 
 });
-app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout) {
+app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
     $scope.foo = {id:1 , name:"sample foo"};
     $scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId", {fooId:'@id'});
 
