@@ -11,16 +11,16 @@
 	<script th:src="@{/libs/angular-cookies/angular-cookies.js}"></script>
 	<script th:src="@{/libs/ngstorage/ngStorage.js}"></script>
 	<script th:src="@{/libs/angular-jwt/dist/angular-jwt.js}"></script>
-	<script th:src="@{/libs/angular-utf8-base64/angular-utf8-base64.js}"></script>
-	
-    <script th:src="@{/scripts/explicit-app.js}"></script>
-    
+	<!-- <script th:src="@{/libs/angular-utf8-base64/angular-utf8-base64.js}"></script>-->
+
     <script th:inline="javascript" type="text/javascript">
     /*<![CDATA[*/
-    	var GLB_HOSTNAME = /*[[${@environment.getProperty('app.server.hostname')}]]*/ 'localhost';
-    	var GLB_CONTEXT = /*[[@{/}]]*/ '/';
+        var GLB_HOSTNAME = /*[[${@environment.getProperty('app.server.hostname')}]]*/ 'localhost';
+        var GLB_CONTEXT = /*[[@{/}]]*/ '/';
     /*]]>*/
     </script>
+	
+    <script th:src="@{/scripts/explicit-app.js}"></script>
 </head>
 <body>
 	<div>

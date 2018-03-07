@@ -1,5 +1,8 @@
 package com.mplescano.oauth.poc.poc01.web;
 
+import java.util.Collections;
+import java.util.Enumeration;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -18,11 +21,24 @@ public class RevokeTokenEndpoint {
     @RequestMapping(method = RequestMethod.DELETE, value = "/oauth/token")
     @ResponseBody
     public void revokeToken(HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        if (authorization != null && authorization.contains("Bearer")) {
-            String tokenId = authorization.substring("Bearer".length() + 1);
-            tokenServices.revokeToken(tokenId);
-        }
+        Enumeration<String> authorizations = request.getHeaders("Authorization");
+        for (String rawAuthorization : Collections.list(authorizations)) {
+        	String bearerAuthorization = null;
+            if (rawAuthorization != null && rawAuthorization.contains(",") && rawAuthorization.contains("Bearer")) {
+            	String[] arrAuthorization = rawAuthorization.split("\\,");
+            	for (String splittedAuth : arrAuthorization) {
+            		if (splittedAuth.startsWith("Bearer")) {
+                		bearerAuthorization = splittedAuth;
+            		}
+				}
+            }
+            else if (rawAuthorization != null && !rawAuthorization.contains(",") && rawAuthorization.contains("Bearer")) {
+            	bearerAuthorization = rawAuthorization;
+            }
+            if (bearerAuthorization != null) {
+                String tokenId = bearerAuthorization.substring("Bearer".length() + 1);
+                tokenServices.revokeToken(tokenId);
+            }
+		}
     }
-
 }

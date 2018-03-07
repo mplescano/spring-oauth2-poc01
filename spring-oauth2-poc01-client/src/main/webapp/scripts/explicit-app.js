@@ -1,10 +1,10 @@
 var app = angular.module('myApp', ["ngResource","ngRoute","ngCookies","angular-jwt"]);
-app.config(function($routeProvider, $httpProvider) {
+app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider) {
 	
     $routeProvider
-    .when('/index',{
-    	controller: 'mainIndexCtrl',
-        templateUrl: 'explicit-index.html',
+    .when('/session',{
+    	controller: 'mainSessionCtrl',
+        templateUrl: 'explicit-session.html',
         controllerAs: '$ctrl'
     })
     .when('/login', {
@@ -12,12 +12,17 @@ app.config(function($routeProvider, $httpProvider) {
     	templateUrl: 'explicit-login.html',
         controllerAs: '$ctrl'
     })
-    .otherwise({ redirectTo: '/index' });
-});
+    .otherwise({
+    	template: '<h1>Root</h1>' 
+    });
+}]);
 /*app.config(['$httpProvider', function($httpProvider) {
     $httpProvider.interceptors.push('rememberMeInterceptor');
 }]);*/
-app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
+
+app.controller('mainLoginCtrl', mainLoginCtrl);
+mainLoginCtrl.$inject = ['$scope','$rootScope','$resource','$http','$httpParamSerializer','$cookies','jwtHelper','$timeout','$location'];
+function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
     $rootScope.organization = "";
     $rootScope.isLoggedIn = false;
 
@@ -33,7 +38,7 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
     }
 
     if($cookies.get("access_token")){
-    	$location.path('/index');
+    	$location.path('/session');
     }
     else {
     	delete $http.defaults.headers.common["Authorization"];
@@ -63,7 +68,7 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
                 "Content-type": "application/x-www-form-urlencoded; charset=utf-8"
             },
             data: $httpParamSerializer(params)
-        }
+        };
         $http(req).then(
             function(data){
                 $http.defaults.headers.common.Authorization= 'Bearer ' + data.data.access_token;
@@ -71,7 +76,7 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
                 $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
                 $cookies.put("validity", data.data.expires_in);
                 $rootScope.isLoggedIn = true;
-                $location.path('/index');
+                $location.path('/session');
             },function(response){
                 console.log("error", response);
                 $rootScope.isLoggedIn = false;
@@ -79,10 +84,11 @@ app.controller('mainLoginCtrl', function($scope,$rootScope,$resource,$http,$http
             }
         );
     }
-    
+}
 
-});
-app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
+app.controller('mainSessionCtrl', mainSessionCtrl);
+mainSessionCtrl.$inject = ['$scope','$rootScope','$resource','$http','$httpParamSerializer','$cookies','jwtHelper','$timeout','$location'];
+function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
     $scope.foo = {id:1 , name:"sample foo"};
     $scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId", {fooId:'@id'});
 
@@ -113,7 +119,7 @@ app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$http
         var req = {
             method: 'DELETE',
             headers: {
-                "Authorization": "Basic " + $scope.encoded,
+                "Authorization": ['Basic ' + $scope.encoded, 'Bearer ' + $cookies.get("access_token")] 
             },
             url: "http://" + GLB_HOSTNAME + ":8080/oauth/token"
         }
@@ -144,7 +150,8 @@ app.controller('mainIndexCtrl', function($scope,$rootScope,$resource,$http,$http
             $rootScope.organization = response.data.organization;
         }); 
     }
-});
+}
+
 /*
 app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', function($q, $injector,$httpParamSerializer) {  
     var interceptor = {
@@ -170,7 +177,7 @@ app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', f
                         var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
                         $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
                         $cookies.put("validity", data.data.expires_in);
-                        $location.path('/index')
+                        $location.path('/session')
                         //window.location.href="index";
                     },function(){
                         console.log("error");
