@@ -1,5 +1,6 @@
 package com.mplescano.oauth.poc.poc01.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,9 +14,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
  
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) 
-      throws Exception {
+	@Autowired
+	public void globalUserDetails(final AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
           .withUser("john").password("123").roles("USER")
           .authorities("PERM_ADD", "PERM_VIEW")

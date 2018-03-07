@@ -27,16 +27,11 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
     $rootScope.isLoggedIn = false;
 
     $rootScope.loginData = {grant_type:"password", username: "", password: "", client_id: "fooClientIdPassword"};
-    $rootScope.refreshData = {grant_type:"refresh_token"};
     $scope.encoded = window.btoa("fooClientIdPassword:secret");
     $scope.login = function() {
          obtainAccessToken($rootScope.loginData);
     }
     
-    $scope.refreshAccessToken = function(){
-        obtainAccessToken($rootScope.refreshData);
-    }
-
     if($cookies.get("access_token")){
     	$location.path('/session');
     }
@@ -75,6 +70,7 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
                 var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
                 $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
                 $cookies.put("validity", data.data.expires_in);
+                $cookies.put("refresh_token", data.data.refresh_token);
                 $rootScope.isLoggedIn = true;
                 $location.path('/session');
             },function(response){
@@ -97,7 +93,11 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
     $scope.getFoo = function(){
         $scope.foo = $scope.foos.get({fooId:$scope.foo.id});
     }
-
+    $rootScope.refreshData = {grant_type:"refresh_token", refresh_token:$cookies.get("refresh_token")};
+    $scope.refreshAccessToken = function() {
+        obtainNewAccessToken($rootScope.refreshData);
+    }
+    
     if($cookies.get("access_token")){
         console.log("there is access token");
         $http.defaults.headers.common.Authorization = 'Bearer ' + $cookies.get("access_token");
@@ -126,6 +126,7 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
         $http(req).then(
             function(data){
                 $cookies.remove("access_token");
+                $cookies.remove("refresh_token");
                 $cookies.remove("validity");
                 $cookies.remove("remember");
                 $location.path('/login');
@@ -149,6 +150,33 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
             console.log(response);
             $rootScope.organization = response.data.organization;
         }); 
+    }
+    
+    function obtainNewAccessToken(params){
+        var req = {
+            method: 'POST',
+            url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
+            headers: {
+                "Authorization": ["Basic " + $scope.encoded, 'Bearer ' + $cookies.get("access_token")],
+                "Content-type": "application/x-www-form-urlencoded; charset=utf-8"
+            },
+            data: $httpParamSerializer(params)
+        };
+        $http(req).then(
+            function(data){
+                $http.defaults.headers.common.Authorization= 'Bearer ' + data.data.access_token;
+                var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
+                $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
+                $cookies.put("refresh_token", data.data.refresh_token);
+                $cookies.put("validity", data.data.expires_in);
+                $rootScope.isLoggedIn = true;
+            },function(response){
+                console.log("error", response);
+                $rootScope.isLoggedIn = false;
+                $location.path('/login');
+                //window.location.href = "login";
+            }
+        );
     }
 }
 
