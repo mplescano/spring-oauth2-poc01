@@ -31,7 +31,9 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-        oauthServer.tokenKeyAccess("permitAll()").checkTokenAccess("isAuthenticated()");
+        oauthServer
+            .tokenKeyAccess("permitAll()")//Default is empty, which is interpreted as "denyAll()" (no access). /oauth/token_key (exposes public key for token verification if using JWT tokens).
+            .checkTokenAccess("isAuthenticated()");//Default is empty, which is interpreted as "denyAll()" (no access). /oauth/check_token used by Resource Servers to decode access tokens
     }
 
     @Override

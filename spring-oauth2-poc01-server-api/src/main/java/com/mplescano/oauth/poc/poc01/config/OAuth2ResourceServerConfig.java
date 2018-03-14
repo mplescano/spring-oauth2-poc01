@@ -22,22 +22,25 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
   @Autowired
   private DataSource dataSource;
 
-  //
+  private static final String RESOURCE_ID = "my_rest_api";
 
   @Override
   public void configure(final HttpSecurity http) throws Exception {
       // @formatter:off
-      http.sessionManagement()
+      http
+          .anonymous().disable()
+          .sessionManagement()
           //.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
           .sessionCreationPolicy(SessionCreationPolicy.STATELESS)//in order to avoid overwriting the cookie of oauth server
           .and()
-          .authorizeRequests().anyRequest().permitAll();
+          .authorizeRequests()
+              .anyRequest().permitAll();
   // @formatter:on        
   }
 
   @Override
   public void configure(final ResourceServerSecurityConfigurer config) {
-      config.tokenServices(tokenServices());
+      config.resourceId(RESOURCE_ID).tokenServices(tokenServices());
   }
 
   @Bean
