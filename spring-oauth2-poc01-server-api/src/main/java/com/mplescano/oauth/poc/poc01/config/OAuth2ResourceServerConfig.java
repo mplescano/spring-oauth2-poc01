@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
@@ -34,13 +35,16 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
           .sessionCreationPolicy(SessionCreationPolicy.STATELESS)//in order to avoid overwriting the cookie of oauth server
           .and()
           .authorizeRequests()
-              .anyRequest().permitAll();
+              .anyRequest().authenticated()
+          .and().exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
   // @formatter:on        
   }
 
   @Override
   public void configure(final ResourceServerSecurityConfigurer config) {
-      config.resourceId(RESOURCE_ID).tokenServices(tokenServices());
+      config.resourceId(RESOURCE_ID).tokenServices(tokenServices())
+      	//.stateless(false)//default true
+      	;
   }
 
   @Bean

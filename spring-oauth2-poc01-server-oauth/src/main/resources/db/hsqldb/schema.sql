@@ -70,3 +70,25 @@ create table client_details (
   additional_information VARCHAR(4096),
   auto_approve_scopes VARCHAR(255)
 );
+
+DROP TABLE users IF EXISTS;
+CREATE TABLE users (
+  id         INTEGER IDENTITY PRIMARY KEY,
+  first_name VARCHAR(30) NOT NULL,
+  last_name  VARCHAR(30) NOT NULL,
+  roles    VARCHAR(255) NOT NULL,
+  username       VARCHAR(30) NOT NULL,
+  password  VARCHAR(255) NOT NULL,
+  enabled boolean not null,
+  created_at	TIMESTAMP not null,
+  UNIQUE (username),
+  UNIQUE (first_name, last_name)
+);
+
+DROP TABLE authorities IF EXISTS;
+create table authorities (
+	id         INTEGER IDENTITY PRIMARY KEY,
+	role varchar(50) not null,
+	authority varchar(50) not null,
+	UNIQUE (role, authority)
+);

@@ -16,13 +16,7 @@ public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
  
 	@Autowired
 	public void globalUserDetails(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-          .withUser("john").password("123").roles("USER")
-          .authorities("PERM_ADD", "PERM_VIEW")
-          .and()
-              .withUser("tom").password("111").roles("ADMIN").and()
-              .withUser("user1").password("pass").roles("USER").and()
-              .withUser("admin").password("nimda").roles("ADMIN");;
+        auth.inMemoryAuthentication();
     }
  
     @Override
