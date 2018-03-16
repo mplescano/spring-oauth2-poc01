@@ -16,18 +16,20 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
+import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
+
 @Configuration
 @EnableResourceServer
 public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
-  @Autowired
-  private DataSource dataSource;
+	@Autowired
+	private DataSource dataSource;
 
-  private static final String RESOURCE_ID = "my_rest_api";
+	private static final String RESOURCE_ID = "my_rest_api";
 
-  @Override
-  public void configure(final HttpSecurity http) throws Exception {
-      // @formatter:off
+	@Override
+	public void configure(final HttpSecurity http) throws Exception {
+		// @formatter:off
       http
           .anonymous().disable()
           .sessionManagement()
@@ -38,27 +40,34 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
               .anyRequest().authenticated()
           .and().exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
   // @formatter:on        
-  }
+	}
 
-  @Override
-  public void configure(final ResourceServerSecurityConfigurer config) {
-      config.resourceId(RESOURCE_ID).tokenServices(tokenServices())
-      	//.stateless(false)//default true
-      	;
-  }
+	@Override
+	public void configure(final ResourceServerSecurityConfigurer config) {
+		config.resourceId(RESOURCE_ID).tokenServices(tokenServices())
+		// .stateless(false)//default true
+		;
+	}
 
-  @Bean
-  @Primary
-  public DefaultTokenServices tokenServices() {
-      final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-      defaultTokenServices.setTokenStore(tokenStore());
-      return defaultTokenServices;
-  }
+	@Bean
+	@Primary
+	public DefaultTokenServices tokenServices() {
+		final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+		defaultTokenServices.setTokenStore(tokenStore());
+		return defaultTokenServices;
+	}
 
-  // JDBC token store configuration
-  @Bean
-  public TokenStore tokenStore() {
-      return new JdbcTokenStore(dataSource);
-  }
+	// JDBC token store configuration
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource);
+	}
+	
+	public JdbcUserServiceImpl userService() {
+		JdbcUserServiceImpl userService = new JdbcUserServiceImpl();
+		userService.setDataSource(dataSource);
+		userService.setUsernameBasedPrimaryKey(false);
+		return userService;
+	}
 
 }
