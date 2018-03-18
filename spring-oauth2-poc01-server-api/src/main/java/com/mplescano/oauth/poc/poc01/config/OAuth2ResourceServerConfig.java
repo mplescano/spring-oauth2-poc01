@@ -25,6 +25,10 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 	@Autowired
 	private DataSource dataSource;
 
+	/**
+	 * Appears in the response like this:
+	 * WWW-Authenticate: Bearer realm="my_rest_api"
+	 */
 	private static final String RESOURCE_ID = "my_rest_api";
 
 	@Override
@@ -63,6 +67,7 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 		return new JdbcTokenStore(dataSource);
 	}
 	
+	@Bean
 	public JdbcUserServiceImpl userService() {
 		JdbcUserServiceImpl userService = new JdbcUserServiceImpl();
 		userService.setDataSource(dataSource);

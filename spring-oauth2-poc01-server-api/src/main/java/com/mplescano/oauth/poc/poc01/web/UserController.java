@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.stereotype.Controller;
@@ -21,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.mplescano.oauth.poc.poc01.model.entity.User;
+import com.mplescano.oauth.poc.poc01.service.UserService;
 
 @Controller
 public class UserController {
@@ -76,10 +78,10 @@ public class UserController {
       
     @RequestMapping(value = "/user/", method = RequestMethod.POST)
     public ResponseEntity<Void> createUser(@RequestBody User user, UriComponentsBuilder ucBuilder) {
-        System.out.println("Creating User " + user.getName());
+        System.out.println("Creating User " + user.getUsername());
   
         if (userService.isUserExist(user)) {
-            System.out.println("A User with name " + user.getName() + " already exist");
+            System.out.println("A User with name " + user.getUsername() + " already exist");
             return new ResponseEntity<Void>(HttpStatus.CONFLICT);
         }
   
@@ -104,10 +106,10 @@ public class UserController {
             return new ResponseEntity<User>(HttpStatus.NOT_FOUND);
         }
   
-        currentUser.setName(user.getName());
+        /*currentUser.setUsername(user.getUsername());
         currentUser.setAge(user.getAge());
         currentUser.setSalary(user.getSalary());
-          
+          */
         userService.updateUser(currentUser);
         return new ResponseEntity<User>(currentUser, HttpStatus.OK);
     }

@@ -1,5 +1,7 @@
 package com.mplescano.oauth.poc.poc01.config;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
@@ -10,13 +12,18 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
+
 @Configuration
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
  
+    @Autowired
+    private DataSource dataSource;
+    
 	@Autowired
 	public void globalUserDetails(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication();
+        auth.userDetailsService(userService());
     }
  
     @Override
@@ -35,5 +42,13 @@ public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
             .anyRequest().authenticated()
             .and()
             .formLogin().permitAll();
+    }
+    
+    @Bean
+    public JdbcUserServiceImpl userService() {
+        JdbcUserServiceImpl userService = new JdbcUserServiceImpl();
+        userService.setDataSource(dataSource);
+        userService.setUsernameBasedPrimaryKey(false);
+        return userService;
     }
 }

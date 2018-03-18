@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Password Security OAuth</title>
+	
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}"/>
+	<script th:src="@{/libs/angular/angular.js}"></script>
+    <script th:src="@{/libs/angular-route/angular-route.js}"></script>
+	<script th:src="@{/libs/angular-resource/angular-resource.js}"></script>
+	<script th:src="@{/libs/angular-cookies/angular-cookies.js}"></script>
+	<script th:src="@{/libs/ngstorage/ngStorage.js}"></script>
+	<script th:src="@{/libs/angular-jwt/dist/angular-jwt.js}"></script>
+	<!-- <script th:src="@{/libs/angular-utf8-base64/angular-utf8-base64.js}"></script>-->
+
+    <script th:inline="javascript" type="text/javascript">
+    /*<![CDATA[*/
+        var GLB_HOSTNAME = /*[[${@environment.getProperty('app.server.hostname')}]]*/ 'localhost';
+        var GLB_CONTEXT = /*[[@{/}]]*/ '/';
+    /*]]>*/
+    </script>
+	
+    <script th:src="@{/scripts/explicit-proxy-app.js}"></script>
+</head>
+<body>
+	<div>
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" th:href="@{/}">Password Security OAuth</a>
+				</div>
+				<p class="navbar-text navbar-right">{{organization}} &nbsp;
+					&nbsp; &nbsp;</p>
+			</div>
+			<!-- /.container-fluid -->
+		</nav>
+	</div>
+
+	<div class="container">
+        <ng-view></ng-view>
+	</div>
+</body>
+</html>

@@ -135,10 +135,12 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 						String password = rs.getString(2);
 						boolean enabled = rs.getBoolean(3);
 						String roles = rs.getString(4);
-						String[] arrRoles = roles.split("\\,");
-						List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-						for (String roleName : arrRoles) {
-							authorities.add(new SimpleGrantedAuthority(roleName));
+                        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+						if (roles != null) {
+	                        String[] arrRoles = roles.split("\\,");
+	                        for (String roleName : arrRoles) {
+	                            authorities.add(new SimpleGrantedAuthority(roleName));
+	                        }
 						}
 						return new User(username, password, enabled, true, true, true, authorities);
 					}
