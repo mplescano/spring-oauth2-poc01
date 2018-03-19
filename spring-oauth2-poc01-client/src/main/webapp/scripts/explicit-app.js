@@ -26,7 +26,7 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
     $rootScope.organization = "";
     $rootScope.isLoggedIn = false;
 
-    $rootScope.loginData = {grant_type:"password", username: "", password: "", client_id: "fooClientIdPassword"};
+    $rootScope.loginData = {grant_type:"password", username: "", password: ""};//, client_id: "fooClientIdPassword"
     $scope.encoded = window.btoa("fooClientIdPassword:secret");
     $scope.login = function() {
          obtainAccessToken($rootScope.loginData);
@@ -157,7 +157,7 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
             method: 'POST',
             url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
             headers: {
-                "Authorization": ["Basic " + $scope.encoded, 'Bearer ' + $cookies.get("access_token")],
+                "Authorization": "Basic " + $scope.encoded,//, 'Bearer ' + $cookies.get("access_token")
                 "Content-type": "application/x-www-form-urlencoded; charset=utf-8"
             },
             data: $httpParamSerializer(params)

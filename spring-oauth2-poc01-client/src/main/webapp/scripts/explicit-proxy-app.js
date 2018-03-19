@@ -26,8 +26,7 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
     $rootScope.organization = "";
     $rootScope.isLoggedIn = false;
 
-    $rootScope.loginData = {grant_type:"password", username: "", password: "", client_id: "fooClientIdPassword"};
-    $scope.encoded = window.btoa("fooClientIdPassword:secret");
+    $rootScope.loginData = {grant_type:"password", username: "", password: ""};//, client_id: "fooClientIdPassword"
     $scope.login = function() {
          obtainAccessToken($rootScope.loginData);
     }
@@ -57,9 +56,8 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
 
         var req = {
             method: 'POST',
-            url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
+            url: "http://" + GLB_HOSTNAME + ":8070/proxy/oauth/token",
             headers: {
-                "Authorization": "Basic " + $scope.encoded,
                 "Content-type": "application/x-www-form-urlencoded; charset=utf-8"
             },
             data: $httpParamSerializer(params)
@@ -88,8 +86,6 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
     $scope.foo = {id:1 , name:"sample foo"};
     $scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId", {fooId:'@id'});
 
-    $scope.encoded = window.btoa("fooClientIdPassword:secret");
-    
     $scope.getFoo = function(){
         $scope.foo = $scope.foos.get({fooId:$scope.foo.id});
     }
@@ -119,9 +115,9 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
         var req = {
             method: 'DELETE',
             headers: {
-                "Authorization": ['Basic ' + $scope.encoded, 'Bearer ' + $cookies.get("access_token")] 
+                "Authorization": 'Bearer ' + $cookies.get("access_token")
             },
-            url: "http://" + GLB_HOSTNAME + ":8080/oauth/token"
+            url: "http://" + GLB_HOSTNAME + ":8070/proxy/oauth/token"
         }
         $http(req).then(
             function(data){
@@ -152,12 +148,11 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
         }); 
     }
     
-    function obtainNewAccessToken(params){
+    function obtainNewAccessToken(params) {
         var req = {
             method: 'POST',
-            url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
+            url: "http://" + GLB_HOSTNAME + ":8070/proxy/oauth/token",
             headers: {
-                "Authorization": ["Basic " + $scope.encoded, 'Bearer ' + $cookies.get("access_token")],
                 "Content-type": "application/x-www-form-urlencoded; charset=utf-8"
             },
             data: $httpParamSerializer(params)
@@ -179,48 +174,3 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
         );
     }
 }
-
-/*
-app.factory('rememberMeInterceptor', ['$q','$injector','$httpParamSerializer', function($q, $injector,$httpParamSerializer) {  
-    var interceptor = {
-        responseError: function(response) {
-            if (response.status == 401){
-                
-                var $http = $injector.get('$http');
-                var $cookies = $injector.get('$cookies');
-                var $location = $injector.get('$location');
-                var deferred = $q.defer();
-                var refreshData = {grant_type:"refresh_token"};
-                
-                var req = {
-                    method: 'POST',
-                    url: "http://" + GLB_HOSTNAME + ":8080/oauth/token",
-                    headers: {"Content-type": "application/x-www-form-urlencoded; charset=utf-8"},
-                    data: $httpParamSerializer(refreshData)
-                }
-    
-                $http(req).then(
-                    function(data){
-                        $http.defaults.headers.common.Authorization= 'Bearer ' + data.data.access_token;
-                        var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
-                        $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
-                        $cookies.put("validity", data.data.expires_in);
-                        $location.path('/session')
-                        //window.location.href="index";
-                    },function(){
-                        console.log("error");
-                        $cookies.remove("access_token");
-                        $location.path('/login')
-                        //window.location.href = "login";
-                    }
-                );
-                // make the backend call again and chain the request
-                return deferred.promise.then(function() {
-                    return $http(response.config);
-                });
-            }
-            return $q.reject(response);
-        }
-    };
-    return interceptor;
-}]);*/

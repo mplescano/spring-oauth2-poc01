@@ -27,6 +27,7 @@ public class ClientWebConfig extends WebMvcConfigurerAdapter {
         registry.addViewController("/index");
         registry.addViewController("/implicit");
         registry.addViewController("/explicit");
+        registry.addViewController("/explicit-proxy");
     }
  
 }

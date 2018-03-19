@@ -15,6 +15,7 @@
         <java.version>1.7</java.version>
         <node.version>v4.4.3</node.version>
         <npm.version>2.15.1</npm.version>
+        <commons-io.version>2.4</commons-io.version>
     </properties>
 
     <dependencies>
@@ -26,11 +27,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-zuul</artifactId>
             <version>1.2.5.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
         </dependency>
     </dependencies>
 
@@ -45,8 +52,8 @@
                 <executions>
                     <execution>
                         <id>install node and npm</id>
-				        <!-- optional: default phase is "generate-resources" -->
-				        <phase>generate-resources</phase>
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
@@ -57,24 +64,24 @@
                     </execution>
                     <execution>
                         <id>npm install</id>
-				        <!-- optional: default phase is "generate-resources" -->
-				        <phase>generate-resources</phase>
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>bower install</id>
-				        <!-- optional: default phase is "generate-resources" -->
-				        <phase>generate-resources</phase>
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>bower</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>gulp build</id>
-				        <!-- optional: default phase is "generate-resources" -->
-				        <phase>generate-resources</phase>
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>gulp</goal>
                         </goals>
@@ -102,7 +109,7 @@
                     </execution>
                     <execution>
                         <id>bower-prune</id>
-						<phase>clean</phase>
+                        <phase>clean</phase>
                         <goals>
                             <goal>bower</goal>
                         </goals>
@@ -123,7 +130,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                        	<overwrite>true</overwrite>
+                            <overwrite>true</overwrite>
                             <outputDirectory>${project.build.directory}/classes/public/</outputDirectory>
                             <resources>
                                 <resource>
