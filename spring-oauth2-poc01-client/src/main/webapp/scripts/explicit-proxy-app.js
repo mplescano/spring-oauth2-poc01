@@ -1,4 +1,4 @@
-var app = angular.module('myApp', ["ngResource","ngRoute","ngCookies","angular-jwt"]);
+var app = angular.module('myApp', ["ngResource","ngRoute","ngStorage","angular-jwt"]);
 app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider) {
 	
     $routeProvider
@@ -21,8 +21,8 @@ app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpPro
 }]);*/
 
 app.controller('mainLoginCtrl', mainLoginCtrl);
-mainLoginCtrl.$inject = ['$scope','$rootScope','$resource','$http','$httpParamSerializer','$cookies','jwtHelper','$timeout','$location'];
-function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
+mainLoginCtrl.$inject = ['$scope','$rootScope','$resource','$http','$httpParamSerializer','$localStorage','jwtHelper','$timeout','$location'];
+function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$localStorage,jwtHelper,$timeout,$location) {
     $rootScope.organization = "";
     $rootScope.isLoggedIn = false;
 
@@ -31,15 +31,15 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
          obtainAccessToken($rootScope.loginData);
     }
     
-    if($cookies.get("access_token")){
+    if($localStorage.access_token){
     	$location.path('/session');
     }
     else {
     	delete $http.defaults.headers.common["Authorization"];
     }
     
-    if ($cookies.get("remember")=="yes"){
-        var validity = $cookies.get("validity");
+    if ($localStorage.remember == "yes") {
+        var validity = $localStorage.validity;
         if (validity >10) validity -= 10;
         $timeout( function(){;$scope.refreshAccessToken();}, validity * 1000);
     }
@@ -47,10 +47,10 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
     function obtainAccessToken(params){
         if (params.username != null){
             if (params.remember != null){
-                $cookies.put("remember","yes");
+            	$localStorage.remember = "yes";
             }
             else {
-                $cookies.remove("remember");
+                delete $localStorage.remember;
             }
         }
 
@@ -66,37 +66,39 @@ function mainLoginCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$c
             function(data){
                 $http.defaults.headers.common.Authorization= 'Bearer ' + data.data.access_token;
                 var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
-                $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
-                $cookies.put("validity", data.data.expires_in);
-                $cookies.put("refresh_token", data.data.refresh_token);
+                
+                $localStorage.access_token = data.data.access_token;
+                $localStorage.expireDate = expireDate;
+                $localStorage.validity = data.data.expires_in;
+                $localStorage.refresh_token = data.data.refresh_token;
+                
                 $rootScope.isLoggedIn = true;
                 $location.path('/session');
             },function(response){
                 console.log("error", response);
                 $rootScope.isLoggedIn = false;
-                //window.location.href = "login";
             }
         );
     }
 }
 
 app.controller('mainSessionCtrl', mainSessionCtrl);
-mainSessionCtrl.$inject = ['$scope','$rootScope','$resource','$http','$httpParamSerializer','$cookies','jwtHelper','$timeout','$location'];
-function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$cookies,jwtHelper,$timeout,$location) {
+mainSessionCtrl.$inject = ['$scope','$rootScope','$resource','$http','$httpParamSerializer','$localStorage','jwtHelper','$timeout','$location'];
+function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,$localStorage,jwtHelper,$timeout,$location) {
     $scope.foo = {id:1 , name:"sample foo"};
     $scope.foos = $resource("http://" + GLB_HOSTNAME + ":8090/foos/:fooId", {fooId:'@id'});
 
     $scope.getFoo = function(){
         $scope.foo = $scope.foos.get({fooId:$scope.foo.id});
     }
-    $rootScope.refreshData = {grant_type:"refresh_token", refresh_token:$cookies.get("refresh_token")};
+    $rootScope.refreshData = {grant_type:"refresh_token", refresh_token:$localStorage.refresh_token};
     $scope.refreshAccessToken = function() {
         obtainNewAccessToken($rootScope.refreshData);
     }
     
-    if($cookies.get("access_token")){
+    if($localStorage.access_token){
         console.log("there is access token");
-        $http.defaults.headers.common.Authorization = 'Bearer ' + $cookies.get("access_token");
+        $http.defaults.headers.common.Authorization = 'Bearer ' + $localStorage.access_token;
         getOrganization();
         $rootScope.isLoggedIn = true;
     }
@@ -115,18 +117,14 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
         var req = {
             method: 'DELETE',
             headers: {
-                "Authorization": 'Bearer ' + $cookies.get("access_token")
+                "Authorization": 'Bearer ' + $localStorage.access_token
             },
             url: "http://" + GLB_HOSTNAME + ":8070/proxy/oauth/token"
         }
         $http(req).then(
             function(data){
-                $cookies.remove("access_token");
-                $cookies.remove("refresh_token");
-                $cookies.remove("validity");
-                $cookies.remove("remember");
+                $localStorage.$reset();
                 $location.path('/login');
-                //window.location.href="login";
             },function(response){
                 console.log("error", response);
             }
@@ -134,7 +132,7 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
     }
     
     function getOrganization(){
-        var token = $cookies.get("access_token");
+        var token = $localStorage.access_token;
         //JWT
         /* var payload = jwtHelper.decodeToken(token);
         console.log(payload);
@@ -161,9 +159,12 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
             function(data){
                 $http.defaults.headers.common.Authorization= 'Bearer ' + data.data.access_token;
                 var expireDate = new Date (new Date().getTime() + (1000 * data.data.expires_in));
-                $cookies.put("access_token", data.data.access_token, {'expires': expireDate});
-                $cookies.put("refresh_token", data.data.refresh_token);
-                $cookies.put("validity", data.data.expires_in);
+                
+                $localStorage.access_token = data.data.access_token;
+                $localStorage.expireDate = expireDate;
+                $localStorage.refresh_token = data.data.refresh_token;
+                $localStorage.validity = data.data.expires_in;
+                
                 $rootScope.isLoggedIn = true;
             },function(response){
                 console.log("error", response);
