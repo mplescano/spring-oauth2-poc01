@@ -43,6 +43,7 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
           .sessionCreationPolicy(SessionCreationPolicy.STATELESS)//in order to avoid overwriting the cookie of oauth server
           .and()
           .authorizeRequests()
+              //.antMatchers(HttpMethod.OPTIONS).permitAll()//Some browsers like Chrome like to send OPTIONS request to look for CORS before making AJAX call. Therefore, it is better to always allow OPTIONS requests.
               .anyRequest().authenticated()
           .and().exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
   // @formatter:on        

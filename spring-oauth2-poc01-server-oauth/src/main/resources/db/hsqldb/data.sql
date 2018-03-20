@@ -1,9 +1,9 @@
 INSERT INTO oauth_client_details
-	(client_id, client_secret, scope, 
+	(client_id, client_secret, scope, resource_ids,
 	authorized_grant_types,	web_server_redirect_uri, authorities, 
 	access_token_validity, refresh_token_validity, additional_information, autoapprove)
 VALUES
-	('fooClientIdPassword', 'secret', 'foo,read,write',
+	('fooClientIdPassword', 'secret', 'foo,read,write', null,
 	'password,authorization_code,refresh_token', null, null, 
 	36000, 36000, null, true);
 
@@ -17,11 +17,11 @@ VALUES
 36000, 36000, null, false);
 
 INSERT INTO oauth_client_details
-	(client_id, client_secret, scope, 
+	(client_id, client_secret, scope, resource_ids, 
 	authorized_grant_types,	web_server_redirect_uri, authorities, 
 	access_token_validity, refresh_token_validity, additional_information, autoapprove)
 VALUES
-	('my-trusted-client', 'secret', 'read,write,trust',
+	('my-trusted-client', 'secret', 'read,write,trust', null,
 	'password,authorization_code,refresh_token', null, 'ROLE_CLIENT,ROLE_TRUSTED_CLIENT', 
 	120, 600, null, true);
 
