@@ -1,5 +1,7 @@
 package com.mplescano.oauth.poc.poc01.config;
 
+import java.util.Arrays;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +21,11 @@ import org.springframework.security.oauth2.provider.approval.UserApprovalHandler
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 @Configuration
 @EnableAuthorizationServer
@@ -47,18 +52,30 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+    	final TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+    	tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer(), accessTokenConverter()));
+    	
         endpoints
         	.tokenStore(tokenStore())
         	.authenticationManager(authenticationManager)
-        	.tokenEnhancer(tokenEnhancer())
-        	//.userApprovalHandler(userApprovalHandler)
+        	.tokenEnhancer(tokenEnhancerChain)
         	;
     }
 
     @Bean
     public TokenStore tokenStore() {
-        return new JdbcTokenStore(dataSource);
+    	return new JwtTokenStore(accessTokenConverter());
     }
+    
+	@Bean
+	public JwtAccessTokenConverter accessTokenConverter() {
+		final JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+		converter.setSigningKey("123");
+		/*final KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("mytest.jks"),
+				"mypass".toCharArray());
+		converter.setKeyPair(keyStoreKeyFactory.getKeyPair("mytest"));*/
+		return converter;
+	}
     
     @Bean
     @Primary
@@ -73,25 +90,4 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     public TokenEnhancer tokenEnhancer() {
         return new CustomTokenEnhancer();
     }
-    
-    /**
-     * TokenStoreUserApprovalHandler
-     */
-    /*@Autowired
-    private UserApprovalHandler userApprovalHandler;*/
-    /*@Autowired
-    private ClientDetailsService clientDetailsService;*/
-    /**
-     * if (tokenStore() != null) TokenStoreUserApprovalHandler is default 
-     * @param tokenStore
-     * @return
-     */
-    /*@Bean
-    public TokenStoreUserApprovalHandler userApprovalHandler(TokenStore tokenStore) {
-        TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
-        handler.setTokenStore(tokenStore);
-        handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
-        handler.setClientDetailsService(clientDetailsService);
-        return handler;
-    }*/
 }

@@ -11,7 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,18 +32,16 @@ public class UserController {
     @Autowired
     UserService userService;  //Service which will do all data retrieval/manipulation work
     
-    @Autowired
-    private AuthorizationServerTokenServices tokenServices;
-	
     @PreAuthorize("#oauth2.hasScope('read')")
     @RequestMapping(method = RequestMethod.GET, value = "/users/extra")
     @ResponseBody
     public Map<String, Object> getExtraInfo(Authentication auth) {
     	Map<String, Object> mpResults = new HashMap<>();
     	if (auth instanceof OAuth2Authentication) {
-        	Map<String, Object> details = tokenServices.getAccessToken((OAuth2Authentication) auth).getAdditionalInformation();
+    		OAuth2AuthenticationDetails oauthDetails = (OAuth2AuthenticationDetails) auth.getDetails();
+    		//OAuth2AccessToken accessToken = tokenStore.readAccessToken(oauthDetails.getTokenValue());
             //System.out.println("User organization is " + details.get("organization"));
-            mpResults.put("organization", details != null? details.get("organization") : null);
+            mpResults.put("organization", oauthDetails != null && oauthDetails.getDecodedDetails() != null? ((Map<String, Object>) oauthDetails.getDecodedDetails()).get("organization") : null);
     	}
         mpResults.put("authorities", auth.getAuthorities());
         return mpResults;

@@ -15,6 +15,8 @@ import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHand
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
 
@@ -61,11 +63,28 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 		return defaultTokenServices;
 	}
 
-	// JDBC token store configuration
+	// JWT token store configuration
 	@Bean
 	public TokenStore tokenStore() {
-		return new JdbcTokenStore(dataSource);
+		return new JwtTokenStore(accessTokenConverter());
 	}
+	
+    @Bean
+    public JwtAccessTokenConverter accessTokenConverter() {
+        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        converter.setAccessTokenConverter(customAccessTokenConverter());
+        converter.setSigningKey("123");
+        /*
+        final Resource resource = new ClassPathResource("public.txt");
+        String publicKey = null;
+        try {
+        	publicKey = IOUtils.toString(resource.getInputStream());
+        } catch (final IOException e) {
+        	throw new RuntimeException(e);
+        }
+        converter.setVerifierKey(publicKey);*/
+        return converter;
+    }
 	
 	@Bean
 	public JdbcUserServiceImpl userService() {
@@ -75,4 +94,8 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 		return userService;
 	}
 
+	@Bean
+	public CustomAccessTokenConverter customAccessTokenConverter() {
+		return new CustomAccessTokenConverter();
+	}
 }

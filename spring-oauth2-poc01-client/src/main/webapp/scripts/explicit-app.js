@@ -140,16 +140,9 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
     function getOrganization(){
         var token = $cookies.get("access_token");
         //JWT
-        /* var payload = jwtHelper.decodeToken(token);
+        var payload = jwtHelper.decodeToken(token);
         console.log(payload);
-        $scope.organization = payload.organization; */
-        
-        //JDBC
-         $http.get("http://" + GLB_HOSTNAME + ":8090/users/extra")
-        .then(function(response) {
-            console.log(response);
-            $rootScope.organization = response.data.organization;
-        }); 
+        $rootScope.organization = payload.organization;
     }
     
     function obtainNewAccessToken(params){
