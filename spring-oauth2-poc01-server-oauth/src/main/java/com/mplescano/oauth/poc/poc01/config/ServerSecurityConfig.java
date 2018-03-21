@@ -40,6 +40,7 @@ public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
         .authorizeRequests()
             .antMatchers("/login").permitAll()
             .anyRequest().authenticated()
+            .and().httpBasic()//allow authentication without the login form 
             .and()
             .formLogin().permitAll();
     }

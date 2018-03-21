@@ -29,9 +29,9 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 
 	/**
 	 * Appears in the response like this:
-	 * WWW-Authenticate: Bearer realm="my_rest_api"
+	 * WWW-Authenticate: Bearer realm="spring-oauth2-poc01"
 	 */
-	private static final String RESOURCE_ID = "my_rest_api";
+	private static final String RESOURCE_ID = "spring-oauth2-poc01";
 
 	@Override
 	public void configure(final HttpSecurity http) throws Exception {

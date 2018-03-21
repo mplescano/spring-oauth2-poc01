@@ -13,7 +13,7 @@ authorized_grant_types, web_server_redirect_uri, authorities,
 access_token_validity, refresh_token_validity, additional_information, autoapprove)
 VALUES
 ('sampleClientId', 'secret', 'read,write,foo,bar',
-'implicit', null, 'PERM_MODIFY,PERM_FOO', 
+'implicit', null, 'ROLE_CLIENT', 
 36000, 36000, null, false);
 
 INSERT INTO oauth_client_details
@@ -21,10 +21,27 @@ INSERT INTO oauth_client_details
 	authorized_grant_types,	web_server_redirect_uri, authorities, 
 	access_token_validity, refresh_token_validity, additional_information, autoapprove)
 VALUES
-	('my-trusted-client', 'secret', 'read,write,trust', null,
+	('my-trusted-client', 'secret', 'read,write,trust', 'spring-oauth2-poc01',
 	'password,authorization_code,refresh_token', null, 'ROLE_CLIENT,ROLE_TRUSTED_CLIENT', 
 	120, 600, null, true);
 
+INSERT INTO oauth_client_details
+	(client_id, client_secret, scope, resource_ids, 
+	authorized_grant_types,	web_server_redirect_uri, authorities, 
+	access_token_validity, refresh_token_validity, additional_information, autoapprove)
+VALUES
+	('my-trusted-app', 'secret', 'read,write,trust', 'spring-oauth2-poc01',
+	'client_credentials,password', null, 'ROLE_CLIENT,ROLE_TRUSTED_CLIENT', 
+	120, 600, null, true);
+
+INSERT INTO oauth_client_details
+	(client_id, client_secret, scope, resource_ids, 
+	authorized_grant_types,	web_server_redirect_uri, authorities, 
+	access_token_validity, refresh_token_validity, additional_information, autoapprove)
+VALUES
+	('my-normal-app', null, 'read,write', 'spring-oauth2-poc01',
+	'authorization_code,implicit', null, 'ROLE_CLIENT', 
+	120, 600, null, true);
 	
 INSERT INTO authorities VALUES (1, 'ROLE_ADMIN', 'PERM_VIEW_USER');
 INSERT INTO authorities VALUES (2, 'ROLE_ADMIN', 'PERM_MODIFY_USER');
