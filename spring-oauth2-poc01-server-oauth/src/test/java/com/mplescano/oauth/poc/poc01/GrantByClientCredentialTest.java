@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,16 +26,22 @@ public class GrantByClientCredentialTest extends Oauth2SupportTest {
     
     private int portOauth = 8080;
     
+    private static final String CLIENT_ID_01 = "my-trusted-app";
+    
+    private static final String CLIENT_PASS_01 = "secret";
+    
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void getJwtTokenByTrustedClient() throws Exception {
-        ResponseEntity<String> response = new TestRestTemplate("trusted-app", "secret").postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=trusted-app&grant_type=client_credentials", null, String.class);
+        ResponseEntity<String> response = new TestRestTemplate(CLIENT_ID_01, CLIENT_PASS_01)
+        		.postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=" + CLIENT_ID_01 + "&grant_type=client_credentials", null, String.class);
         String responseText = response.getBody();
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         HashMap jwtMap = new ObjectMapper().readValue(responseText, HashMap.class);
 
         Assert.assertEquals("bearer", jwtMap.get("token_type"));
-        Assert.assertEquals("read write", jwtMap.get("scope"));
+        Assert.assertTrue(((String) jwtMap.get("scope")).contains("read"));
+        Assert.assertTrue(((String) jwtMap.get("scope")).contains("write"));
         Assert.assertTrue(jwtMap.containsKey("access_token"));
         Assert.assertTrue(jwtMap.containsKey("expires_in"));
         Assert.assertTrue(jwtMap.containsKey("jti"));
@@ -45,27 +53,37 @@ public class GrantByClientCredentialTest extends Oauth2SupportTest {
         logJson(claims);
 
         HashMap claimsMap = new ObjectMapper().readValue(claims, HashMap.class);
-        Assert.assertEquals("spring-boot-application", ((List<String>) claimsMap.get("aud")).get(0));
-        Assert.assertEquals("trusted-app", claimsMap.get("client_id"));
+        Assert.assertEquals("spring-oauth2-poc01", ((List<String>) claimsMap.get("aud")).get(0));
+        Assert.assertEquals(CLIENT_ID_01, claimsMap.get("client_id"));
         Assert.assertEquals("read", ((List<String>) claimsMap.get("scope")).get(0));
         Assert.assertEquals("write", ((List<String>) claimsMap.get("scope")).get(1));
         List<String> authorities = (List<String>) claimsMap.get("authorities");
-        Assert.assertEquals(1, authorities.size());
-        Assert.assertEquals("ROLE_TRUSTED_CLIENT", authorities.get(0));
+        Assert.assertTrue(authorities.size() >= 1);
+        Assert.assertTrue(authorities.contains("ROLE_TRUSTED_CLIENT"));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test(expected = ResourceAccessException.class)
+    @Test(expected = RestClientException.class)
     public void accessWithUnknownClientID() throws Exception {
-        ResponseEntity<String> response = new TestRestTemplate("trusted-app", "secrets").postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=trusted-app&grant_type=client_credentials", null, String.class);
+        ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, CLIENT_ID_01, "secrets")
+        		.postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=" + CLIENT_ID_01 + "&grant_type=client_credentials", null, String.class);			
     }
 
     @Test
     public void accessProtectedResourceByJwtToken() throws Exception {
-        ResponseEntity<String> response = new TestRestTemplate().getForEntity("http://localhost:" + portApi + "/resources/client", String.class);
-        Assert.assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    	ResponseEntity<String> response = null;
+        int statusCode = 0;
+        try {
+	        buildTestRestTemplate(restTemplateBuilder)
+	        		.getForEntity("http://localhost:" + portApi + "/resources/client", String.class);
+		}
+		catch (RestClientResponseException ex) {
+			statusCode = ex.getRawStatusCode();
+		}
+        Assert.assertEquals(HttpStatus.UNAUTHORIZED.value(), statusCode);
 
-        response = new TestRestTemplate("trusted-app", "secret").postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=trusted-app&grant_type=client_credentials", null, String.class);
+        response = buildTestRestTemplate(restTemplateBuilder, CLIENT_ID_01, CLIENT_PASS_01)
+        		.postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=" + CLIENT_ID_01 + "&grant_type=client_credentials", null, String.class);
         String responseText = response.getBody();
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         HashMap jwtMap = new ObjectMapper().readValue(responseText, HashMap.class);
@@ -78,13 +96,13 @@ public class GrantByClientCredentialTest extends Oauth2SupportTest {
         logJWTClaims(jwtContext);
 
         response = new TestRestTemplate().exchange("http://localhost:" + portApi + "/resources/principal", HttpMethod.GET, new HttpEntity<>(null, headers), String.class);
-        Assert.assertEquals("trusted-app", response.getBody());
+        Assert.assertEquals(CLIENT_ID_01, response.getBody());
 
         response = new TestRestTemplate().exchange("http://localhost:" + portApi + "/resources/trusted_client", HttpMethod.GET, new HttpEntity<>(null, headers), String.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         response = new TestRestTemplate().exchange("http://localhost:" + portApi + "/resources/roles", HttpMethod.GET, new HttpEntity<>(null, headers), String.class);
-        Assert.assertEquals("[{\"authority\":\"ROLE_TRUSTED_CLIENT\"}]", response.getBody());
+        Assert.assertTrue(response.getBody().contains("{\"authority\":\"ROLE_TRUSTED_CLIENT\"}"));
 
     }
 }
