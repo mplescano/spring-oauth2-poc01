@@ -24,7 +24,8 @@ public class RevokeTokenEndpoint {
         Enumeration<String> authorizations = request.getHeaders("Authorization");
         for (String rawAuthorization : Collections.list(authorizations)) {
         	String bearerAuthorization = null;
-            if (rawAuthorization != null && rawAuthorization.contains(",") && rawAuthorization.contains("Bearer")) {
+            if (rawAuthorization != null && rawAuthorization.contains(",") 
+            		&& rawAuthorization.contains("Bearer")) {
             	String[] arrAuthorization = rawAuthorization.split("\\,");
             	for (String splittedAuth : arrAuthorization) {
             		if (splittedAuth.startsWith("Bearer")) {
@@ -32,7 +33,8 @@ public class RevokeTokenEndpoint {
             		}
 				}
             }
-            else if (rawAuthorization != null && !rawAuthorization.contains(",") && rawAuthorization.contains("Bearer")) {
+            else if (rawAuthorization != null && !rawAuthorization.contains(",") 
+            		&& rawAuthorization.contains("Bearer")) {
             	bearerAuthorization = rawAuthorization;
             }
             if (bearerAuthorization != null) {
