@@ -57,11 +57,15 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     	
         endpoints
         	.tokenStore(tokenStore())
+            //.accessTokenConverter(accessTokenConverter())//if (accessTokenConverter() instanceof JwtAccessTokenConverter) then tokenStore = new JwtTokenStore(accessTokenConverter());
         	.authenticationManager(authenticationManager)
-        	.tokenEnhancer(tokenEnhancerChain)
+        	.tokenEnhancer(tokenEnhancerChain)//by default tokenEnhancer = accessTokenConverter
         	;
     }
 
+    /*
+     * it's redundant since only is required to define accessTokenConverter() and set it up in endpoints.accessTokenConverter
+     * if you want to implement a custom tokenstore then you have to define it as a bean*/  
     @Bean
     public TokenStore tokenStore() {
     	return new JwtTokenStore(accessTokenConverter());
@@ -77,6 +81,7 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
 		return converter;
 	}
     
+    /**/
     @Bean
     @Primary
     public DefaultTokenServices tokenServices() {
