@@ -76,7 +76,7 @@ public class Oauth2SupportTest {
      }
     
     TestRestTemplate buildTestRestTemplate(RestTemplateBuilder builder, String username, String password) {
-    	TestRestTemplate result = new TestRestTemplate(builder.build());
+    	TestRestTemplate result = new TestRestTemplate(builder);
 		List<ClientHttpRequestInterceptor> interceptors = result.getRestTemplate().getInterceptors();
 		if (interceptors == null) {
 			interceptors = Collections.emptyList();
@@ -95,7 +95,7 @@ public class Oauth2SupportTest {
     }
     
     TestRestTemplate buildTestRestTemplate(RestTemplateBuilder builder) {
-    	TestRestTemplate result = new TestRestTemplate(builder.build());
+    	TestRestTemplate result = new TestRestTemplate(builder);
     	result.getRestTemplate().setErrorHandler(new CustomErrorHandler());
     	return result;
     }
@@ -129,7 +129,7 @@ public class Oauth2SupportTest {
         		messageConverters.add(new MappingJackson2HttpMessageConverter(objectMapper));
         				
         	RestTemplateBuilder builder = new RestTemplateBuilder();
-        	builder = builder.requestFactory(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory() {{setOutputStreaming(false);}}))
+        	builder = builder.requestFactory(() -> new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory() {{setOutputStreaming(false);}}))
         			.interceptors(new LoggingRequestInterceptor()).messageConverters(messageConverters).errorHandler(new CustomErrorHandler());
         	return builder;
         }
@@ -137,7 +137,7 @@ public class Oauth2SupportTest {
         @Bean
         @Primary
         TestRestTemplate restTemplate(RestTemplateBuilder builder) {
-        	TestRestTemplate result = new TestRestTemplate(builder.build());
+        	TestRestTemplate result = new TestRestTemplate(builder);
         	result.getRestTemplate().setErrorHandler(new CustomErrorHandler());
         	return result;
         }

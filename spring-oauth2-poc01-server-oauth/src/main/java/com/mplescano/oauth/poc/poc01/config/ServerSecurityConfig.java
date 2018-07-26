@@ -15,7 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
 
 @Configuration
-@Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
+@Order(SecurityProperties.BASIC_AUTH_ORDER - 2)
 public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
  
     @Autowired

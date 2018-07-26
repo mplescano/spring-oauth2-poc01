@@ -12,11 +12,17 @@
     <name>Client</name>
 
     <properties>
-        <java.version>1.7</java.version>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <node.version>v4.4.3</node.version>
         <npm.version>2.15.1</npm.version>
         <commons-io.version>2.4</commons-io.version>
     </properties>
+
+
 
     <dependencies>
         <dependency>
@@ -30,8 +36,7 @@
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-zuul</artifactId>
-            <version>1.2.5.RELEASE</version>
+            <artifactId>spring-cloud-starter-netflix-zuul</artifactId> 
         </dependency>
 
         <dependency>

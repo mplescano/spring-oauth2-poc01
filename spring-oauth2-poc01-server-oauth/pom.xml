@@ -12,7 +12,11 @@
     <name>Server Oauth2</name>
 
     <properties>
-        <java.version>1.7</java.version>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<commons-lang3.version>3.4</commons-lang3.version>
     </properties>
 
@@ -68,18 +72,19 @@
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
+            <version>2.3.3.RELEASE</version>
 		</dependency>
 		
 	
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-jwt</artifactId>
+            <version>1.0.9.RELEASE</version>
         </dependency>
         
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>${commons-lang3.version}</version>
 		</dependency>
         
       <dependency>

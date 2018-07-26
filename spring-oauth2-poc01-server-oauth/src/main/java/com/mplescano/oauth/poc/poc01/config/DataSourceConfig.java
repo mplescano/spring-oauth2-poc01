@@ -36,13 +36,12 @@ public class DataSourceConfig {
     }
     
     private PrintWriter slf4jPrintWriter() {
-        PrintWriter printWriter = new PrintWriter(new ByteArrayOutputStream()) {
+        return new PrintWriter(new ByteArrayOutputStream()) {
             @Override
             public void println(final String x) {
                 log.debug(x);
             }
         };
-        return printWriter;
     }
  
     @Bean
