@@ -11,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
 
@@ -23,7 +25,7 @@ public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
     
 	@Autowired
 	public void globalUserDetails(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService());
+        auth.userDetailsService(userService()).passwordEncoder(passwordEncoder());
     }
  
     @Override
@@ -51,5 +53,10 @@ public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
         userService.setDataSource(dataSource);
         userService.setUsernameBasedPrimaryKey(false);
         return userService;
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
     }
 }

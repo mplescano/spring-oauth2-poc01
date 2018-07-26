@@ -13,7 +13,7 @@ authorized_grant_types, web_server_redirect_uri, authorities,
 access_token_validity, refresh_token_validity, additional_information, autoapprove)
 VALUES
 ('sampleClientId', 'secret', 'read,write,foo,bar',
-'implicit', null, 'ROLE_CLIENT', 
+'implicit', 'http://TCDIGITAL35ZZZ:8070/implicit', 'ROLE_CLIENT', 
 36000, 36000, null, false);
 
 INSERT INTO oauth_client_details
