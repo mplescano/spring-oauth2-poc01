@@ -119,8 +119,10 @@ function mainSessionCtrl($scope,$rootScope,$resource,$http,$httpParamSerializer,
         var req = {
             method: 'DELETE',
             headers: {
-                "Authorization": ['Basic ' + $scope.encoded, 'Bearer ' + $cookies.get("access_token")] 
+                "Authorization": /*[*/'Basic ' + $scope.encoded/*, 'Bearer ' + $cookies.get("access_token")*//*]*/
+                //"Authorization[1]": /*[*//*'Basic ' + $scope.encoded,*/ 'Bearer ' + $cookies.get("access_token")/*]*/,
             },
+            params: {"token": $cookies.get("access_token")},
             url: "http://" + GLB_HOSTNAME + ":8080/oauth/token"
         }
         $http(req).then(
