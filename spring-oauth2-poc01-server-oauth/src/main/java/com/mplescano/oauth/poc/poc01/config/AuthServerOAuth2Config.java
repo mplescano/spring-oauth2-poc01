@@ -27,6 +27,8 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import com.mplescano.oauth.poc.poc01.component.JwtPersistedToken;
+
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter {
@@ -68,7 +70,7 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
      * if you want to implement a custom tokenstore then you have to define it as a bean*/  
     @Bean
     public TokenStore tokenStore() {
-    	return new JwtTokenStore(accessTokenConverter());
+    	return new JwtPersistedToken(new JwtTokenStore(accessTokenConverter()), dataSource);
     }
     
 	@Bean

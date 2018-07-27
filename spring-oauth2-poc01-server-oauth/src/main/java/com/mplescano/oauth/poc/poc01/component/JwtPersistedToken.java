@@ -52,6 +52,10 @@ public class JwtPersistedToken implements TokenStore {
 
 	private static final String DEFAULT_ACCESS_TOKEN_FROM_AUTHENTICATION_SELECT_STATEMENT = "select token_id, token from oauth_access_token where authentication_id = ?";
 
+	private static final String DEFAULT_ACCESS_TOKENS_FROM_USERNAME_AND_CLIENT_SELECT_STATEMENT = "select token_id, token from oauth_access_token where user_name = ? and client_id = ?";
+
+	private static final String DEFAULT_ACCESS_TOKENS_FROM_CLIENTID_SELECT_STATEMENT = "select token_id, token from oauth_access_token where client_id = ?";
+
 	private String selectAccessTokenAuthenticationSql = DEFAULT_ACCESS_TOKEN_AUTHENTICATION_SELECT_STATEMENT;
 
 	private String deleteAccessTokenSql = DEFAULT_ACCESS_TOKEN_DELETE_STATEMENT;
@@ -71,6 +75,10 @@ public class JwtPersistedToken implements TokenStore {
 	private String deleteAccessTokenFromRefreshTokenSql = DEFAULT_ACCESS_TOKEN_DELETE_FROM_REFRESH_TOKEN_STATEMENT;
 
 	private String selectAccessTokenFromAuthenticationSql = DEFAULT_ACCESS_TOKEN_FROM_AUTHENTICATION_SELECT_STATEMENT;
+
+	private String selectAccessTokensFromUserNameAndClientIdSql = DEFAULT_ACCESS_TOKENS_FROM_USERNAME_AND_CLIENT_SELECT_STATEMENT;
+
+	private String selectAccessTokensFromClientIdSql = DEFAULT_ACCESS_TOKENS_FROM_CLIENTID_SELECT_STATEMENT;
 
 	private final JwtTokenStore jwtTokenStore;
 
@@ -210,12 +218,37 @@ public class JwtPersistedToken implements TokenStore {
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientIdAndUserName(String clientId,
 			String userName) {
+		jdbcTemplate.query(selectAccessTokensFromUserNameAndClientIdSql,
+				new RowMapper<Long>() {
+					public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+						try {
+							return rs.getLong(1);
+						}
+						catch (IllegalArgumentException e) {
+							String token = rs.getString(1);
+							jdbcTemplate.update(deleteAccessTokenSql, token);
+							return null;
+						}
+					}
+				}, userName, clientId);
 		return jwtTokenStore.findTokensByClientIdAndUserName(clientId, userName);
 	}
 
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientId(String clientId) {
-		return null;
+		jdbcTemplate.query(selectAccessTokensFromClientIdSql, new RowMapper<Long>() {
+			public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+				try {
+					return rs.getLong(1);
+				}
+				catch (IllegalArgumentException e) {
+					String token = rs.getString(1);
+					jdbcTemplate.update(deleteAccessTokenSql, token);
+					return null;
+				}
+			}
+		}, clientId);
+		return jwtTokenStore.findTokensByClientId(clientId);
 	}
 
 	protected String extractTokenKey(String value) {
