@@ -13,11 +13,13 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import com.mplescano.oauth.poc.poc01.component.VerifierTokenServices;
 import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
 
 @Configuration
@@ -50,31 +52,32 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 	}
 
 	@Override
-	public void configure(final ResourceServerSecurityConfigurer config) {
+	public void configure(final ResourceServerSecurityConfigurer config) throws Exception {
 		config.resourceId(RESOURCE_ID).tokenServices(tokenServices())
 		// .stateless(false)//default true
 		;
 	}
 
-	@Bean
 	@Primary
-	public DefaultTokenServices tokenServices() {
+	@Bean
+	public ResourceServerTokenServices tokenServices() throws Exception {
 		final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-		defaultTokenServices.setTokenStore(tokenStore());
-		return defaultTokenServices;
+		defaultTokenServices.setTokenStore(new JwtTokenStore(accessTokenConverter()));
+		return new VerifierTokenServices(defaultTokenServices);
 	}
 
 	// JWT token store configuration
-	@Bean
-	public TokenStore tokenStore() {
-		return new JwtTokenStore(accessTokenConverter());
-	}
+	/*@Bean*/
+	//private TokenStore tokenStore() {
+	//	return new JwtTokenStore(accessTokenConverter());
+	//}
 	
-    @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
+    /*@Bean*/
+    private JwtAccessTokenConverter accessTokenConverter() throws Exception {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setAccessTokenConverter(customAccessTokenConverter());
+        converter.setAccessTokenConverter(new CustomAccessTokenConverter());
         converter.setSigningKey("123");
+        converter.afterPropertiesSet();
         /*
         final Resource resource = new ClassPathResource("public.txt");
         String publicKey = null;
@@ -95,8 +98,8 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 		return userService;
 	}
 
-	@Bean
-	public CustomAccessTokenConverter customAccessTokenConverter() {
-		return new CustomAccessTokenConverter();
-	}
+	/*@Bean*/
+	//private CustomAccessTokenConverter customAccessTokenConverter() {
+	//	return new CustomAccessTokenConverter();
+	//}
 }

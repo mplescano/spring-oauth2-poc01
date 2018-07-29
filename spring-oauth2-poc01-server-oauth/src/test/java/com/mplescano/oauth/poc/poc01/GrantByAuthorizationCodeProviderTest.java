@@ -3,6 +3,7 @@ package com.mplescano.oauth.poc.poc01;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jose4j.jwt.consumer.JwtContext;
 import org.junit.Assert;
@@ -11,7 +12,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,10 +42,16 @@ public class GrantByAuthorizationCodeProviderTest extends Oauth2SupportTest {
         String cookieValue = jSessionIdCookie.split(";")[0];
 
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.add("Cookie", cookieValue);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("scope.read", "true");
+        body.add("scope.write", "true");
+        body.add("user_oauth_approval", "true");
+        body.add("authorize", "Authorize");
         response = buildTestRestTemplate(restTemplateBuilder, userName, password).postForEntity("http://localhost:" + portOauth +
-                "/oauth/authorize?response_type=code&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}&user_oauth_approval=true&authorize=Authorize", 
-                new HttpEntity<>(headers), String.class, redirectUrl);
+                "/oauth/authorize?response_type=code&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", 
+                new HttpEntity<MultiValueMap<String, String>>(body, headers), String.class, redirectUrl);
         Assert.assertEquals(HttpStatus.FOUND, response.getStatusCode());
         Assert.assertNull(response.getBody());
         String location = response.getHeaders().get("Location").get(0);

@@ -16,6 +16,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -96,9 +98,9 @@ public class JwtPersistedToken implements TokenStore {
 	public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
 		// expected only one otherwise exception
 		jdbcTemplate.queryForObject(selectAccessTokenAuthenticationSql,
-				new RowMapper<Long>() {
-					public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return rs.getLong(1);
+				new RowMapper<String>() {
+					public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+						return rs.getString(1);
 					}
 				}, extractTokenKey(token.getValue()));
 		return jwtTokenStore.readAuthentication(token);
@@ -108,9 +110,9 @@ public class JwtPersistedToken implements TokenStore {
 	public OAuth2Authentication readAuthentication(String token) {
 		// expected only one otherwise exception
 		jdbcTemplate.queryForObject(selectAccessTokenAuthenticationSql,
-				new RowMapper<Long>() {
-					public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return rs.getLong(1);
+				new RowMapper<String>() {
+					public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+						return rs.getString(1);
 					}
 				}, extractTokenKey(token));
 
@@ -143,12 +145,19 @@ public class JwtPersistedToken implements TokenStore {
 
 	@Override
 	public OAuth2AccessToken readAccessToken(String tokenValue) {
-		// expected only one otherwise exception
-		jdbcTemplate.queryForObject(selectAccessTokenSql, new RowMapper<Long>() {
-			public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-				return rs.getLong(1);
-			}
-		}, extractTokenKey(tokenValue));
+		try {
+            // expected only one otherwise exception
+            jdbcTemplate.queryForObject(selectAccessTokenSql, new RowMapper<String>() {
+            	public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            		return rs.getString(1);
+            	}
+            }, extractTokenKey(tokenValue));
+        }
+        catch (EmptyResultDataAccessException ex) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Failed to find access token for token " + tokenValue, ex);
+            }
+        }
 		return jwtTokenStore.readAccessToken(tokenValue);
 	}
 
@@ -170,9 +179,9 @@ public class JwtPersistedToken implements TokenStore {
 
 	@Override
 	public OAuth2RefreshToken readRefreshToken(String tokenValue) {
-		jdbcTemplate.queryForObject(selectRefreshTokenSql, new RowMapper<Long>() {
-			public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-				return rs.getLong(1);
+		jdbcTemplate.queryForObject(selectRefreshTokenSql, new RowMapper<String>() {
+			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+				return rs.getString(1);
 			}
 		}, extractTokenKey(tokenValue));
 		return jwtTokenStore.readRefreshToken(tokenValue);
@@ -182,9 +191,9 @@ public class JwtPersistedToken implements TokenStore {
 	public OAuth2Authentication readAuthenticationForRefreshToken(
 			OAuth2RefreshToken token) {
 		jdbcTemplate.queryForObject(selectRefreshTokenAuthenticationSql,
-				new RowMapper<Long>() {
-					public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return rs.getLong(1);
+				new RowMapper<String>() {
+					public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+						return rs.getString(1);
 					}
 				}, extractTokenKey(token.getValue()));
 		return jwtTokenStore.readAuthenticationForRefreshToken(token);
@@ -206,12 +215,19 @@ public class JwtPersistedToken implements TokenStore {
 
 	@Override
 	public OAuth2AccessToken getAccessToken(OAuth2Authentication authentication) {
-		jdbcTemplate.queryForObject(selectAccessTokenFromAuthenticationSql,
-				new RowMapper<Long>() {
-					public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-						return rs.getLong(1);
-					}
-				}, authenticationKeyGenerator.extractKey(authentication));
+		try {
+            jdbcTemplate.queryForObject(selectAccessTokenFromAuthenticationSql,
+            		new RowMapper<String>() {
+            			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+            				return rs.getString(1);
+            			}
+            		}, authenticationKeyGenerator.extractKey(authentication));
+        }
+        catch (Exception ex) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Failed to find access token for authentication " + authentication, ex);
+            }
+        }
 		return jwtTokenStore.getAccessToken(authentication);
 	}
 
@@ -219,10 +235,10 @@ public class JwtPersistedToken implements TokenStore {
 	public Collection<OAuth2AccessToken> findTokensByClientIdAndUserName(String clientId,
 			String userName) {
 		jdbcTemplate.query(selectAccessTokensFromUserNameAndClientIdSql,
-				new RowMapper<Long>() {
-					public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+				new RowMapper<String>() {
+					public String mapRow(ResultSet rs, int rowNum) throws SQLException {
 						try {
-							return rs.getLong(1);
+							return rs.getString(1);
 						}
 						catch (IllegalArgumentException e) {
 							String token = rs.getString(1);
@@ -236,10 +252,10 @@ public class JwtPersistedToken implements TokenStore {
 
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientId(String clientId) {
-		jdbcTemplate.query(selectAccessTokensFromClientIdSql, new RowMapper<Long>() {
-			public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+		jdbcTemplate.query(selectAccessTokensFromClientIdSql, new RowMapper<String>() {
+			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
 				try {
-					return rs.getLong(1);
+					return rs.getString(1);
 				}
 				catch (IllegalArgumentException e) {
 					String token = rs.getString(1);

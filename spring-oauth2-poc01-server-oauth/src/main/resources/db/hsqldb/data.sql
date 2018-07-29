@@ -40,7 +40,7 @@ INSERT INTO oauth_client_details
 	access_token_validity, refresh_token_validity, additional_information, autoapprove)
 VALUES
 	('my-normal-app', null, 'read,write', 'spring-oauth2-poc01',
-	'authorization_code,implicit', null, 'ROLE_CLIENT', 
+	'authorization_code,implicit', 'http://localhost:8090/resources/user', 'ROLE_CLIENT', 
 	120, 600, null, true);
 	
 INSERT INTO authorities VALUES (1, 'ROLE_ADMIN', 'PERM_VIEW_USER');

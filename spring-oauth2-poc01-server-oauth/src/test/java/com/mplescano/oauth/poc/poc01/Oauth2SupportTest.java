@@ -27,6 +27,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -127,6 +128,7 @@ public class Oauth2SupportTest {
         		messageConverters.add(new SourceHttpMessageConverter<>());
         		messageConverters.add(new AllEncompassingFormHttpMessageConverter());
         		messageConverters.add(new MappingJackson2HttpMessageConverter(objectMapper));
+        		messageConverters.add(new FormHttpMessageConverter());
         				
         	RestTemplateBuilder builder = new RestTemplateBuilder();
         	builder = builder.requestFactory(() -> new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory() {{setOutputStreaming(false);}}))
