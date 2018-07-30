@@ -33,12 +33,15 @@ import com.mplescano.oauth.poc.poc01.component.JwtPersistedToken;
 @EnableAuthorizationServer
 public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter {
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
     
-    @Autowired
-    @Qualifier("authenticationManagerBean")
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    
+    public AuthServerOAuth2Config(DataSource dataSource, 
+                                  @Qualifier("authenticationManagerBean") AuthenticationManager authenticationManager) {
+        this.dataSource = dataSource;
+        this.authenticationManager = authenticationManager;
+    }
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
@@ -68,9 +71,14 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     /*
      * it's redundant since only is required to define accessTokenConverter() and set it up in endpoints.accessTokenConverter
      * if you want to implement a custom tokenstore then you have to define it as a bean*/  
+    //@Bean
+    //public TokenStore tokenStore() {
+    //	return new JwtPersistedToken(new JwtTokenStore(accessTokenConverter()), dataSource);
+    //}
+    
     @Bean
     public TokenStore tokenStore() {
-    	return new JwtPersistedToken(new JwtTokenStore(accessTokenConverter()), dataSource);
+        return new JdbcTokenStore(dataSource);
     }
     
 	@Bean
@@ -90,6 +98,8 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
         final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setReuseRefreshToken(true);
+        defaultTokenServices.setTokenEnhancer(tokenEnhancer());
         return defaultTokenServices;
     }
     

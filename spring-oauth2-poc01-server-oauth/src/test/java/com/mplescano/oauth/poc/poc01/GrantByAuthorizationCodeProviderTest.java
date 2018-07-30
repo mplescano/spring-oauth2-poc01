@@ -32,31 +32,43 @@ public class GrantByAuthorizationCodeProviderTest extends Oauth2SupportTest {
     public void getJwtTokenByAuthorizationCode() throws Exception {
         String userName = "bob";
         String password = "abc123";
+        String location = null;
+        String query = null;
+        HttpHeaders headers = new HttpHeaders();
 
         String redirectUrl = "http://localhost:" + portApi + "/resources/user";
         ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, userName, password).postForEntity("http://localhost:" + portOauth + 
         		"/oauth/authorize?response_type=code&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", null, String.class, redirectUrl);
-        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<String> setCookie = response.getHeaders().get("Set-Cookie");
-        String jSessionIdCookie = setCookie.get(0);
-        String cookieValue = jSessionIdCookie.split(";")[0];
+        if (HttpStatus.OK == response.getStatusCode()) {
+            Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+            List<String> setCookie = response.getHeaders().get("Set-Cookie");
+            String jSessionIdCookie = setCookie.get(0);
+            String cookieValue = jSessionIdCookie.split(";")[0];
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.add("Cookie", cookieValue);
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("scope.read", "true");
-        body.add("scope.write", "true");
-        body.add("user_oauth_approval", "true");
-        body.add("authorize", "Authorize");
-        response = buildTestRestTemplate(restTemplateBuilder, userName, password).postForEntity("http://localhost:" + portOauth +
-                "/oauth/authorize?response_type=code&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", 
-                new HttpEntity<MultiValueMap<String, String>>(body, headers), String.class, redirectUrl);
-        Assert.assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        Assert.assertNull(response.getBody());
-        String location = response.getHeaders().get("Location").get(0);
-        URI locationURI = new URI(location);
-        String query = locationURI.getQuery();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.add("Cookie", cookieValue);
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("scope.read", "true");
+            body.add("scope.write", "true");
+            body.add("user_oauth_approval", "true");
+            body.add("authorize", "Authorize");
+            response = buildTestRestTemplate(restTemplateBuilder, userName, password).postForEntity("http://localhost:" + portOauth +
+                    "/oauth/authorize?response_type=code&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", 
+                    new HttpEntity<MultiValueMap<String, String>>(body, headers), String.class, redirectUrl);
+            Assert.assertEquals(HttpStatus.FOUND, response.getStatusCode());
+            Assert.assertNull(response.getBody());
+            location = response.getHeaders().get("Location").get(0);
+            URI locationURI = new URI(location);
+            query = locationURI.getQuery();
+        }
+        else if (HttpStatus.FOUND == response.getStatusCode()) {
+            location = response.getHeaders().get("Location").get(0);
+            URI locationURI = new URI(location);
+            query = locationURI.getQuery();
+        }
+        else {
+            Assert.fail("Status uknown:" + response.getStatusCode());
+        }
 
         location = "http://localhost:" + portOauth + "/oauth/token?" + query + "&grant_type=authorization_code&client_id=" + CLIENT_ID_01 + 
         		"&redirect_uri={redirectUrl}";

@@ -33,7 +33,7 @@ public class GrantByClientCredentialTest extends Oauth2SupportTest {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void getJwtTokenByTrustedClient() throws Exception {
-        ResponseEntity<String> response = new TestRestTemplate(CLIENT_ID_01, CLIENT_PASS_01)
+        ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, CLIENT_ID_01, CLIENT_PASS_01)
         		.postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=" + CLIENT_ID_01 + "&grant_type=client_credentials", null, String.class);
         String responseText = response.getBody();
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -65,8 +65,10 @@ public class GrantByClientCredentialTest extends Oauth2SupportTest {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test(expected = RestClientException.class)
     public void accessWithUnknownClientID() throws Exception {
-        ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, CLIENT_ID_01, "secrets")
-        		.postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=" + CLIENT_ID_01 + "&grant_type=client_credentials", null, String.class);			
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Requested-With", "XMLHttpRequest");
+        ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, CLIENT_ID_01, "wrongpass")
+        		.postForEntity("http://localhost:" + portOauth + "/oauth/token?client_id=" + CLIENT_ID_01 + "&grant_type=client_credentials", new HttpEntity<>(headers), String.class);			
     }
 
     @Test
