@@ -1,5 +1,6 @@
 package com.mplescano.oauth.poc.poc01;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -22,8 +23,11 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -95,10 +99,46 @@ public class Oauth2SupportTest {
     	return result;
     }
     
+    TestRestTemplate buildTestRestTemplate(RestTemplateBuilder builder, String bearerToken) {
+    	TestRestTemplate result = new TestRestTemplate(builder);
+		List<ClientHttpRequestInterceptor> interceptors = result.getRestTemplate().getInterceptors();
+		if (interceptors == null) {
+			interceptors = Collections.emptyList();
+		}
+		interceptors = new ArrayList<ClientHttpRequestInterceptor>(interceptors);
+		Iterator<ClientHttpRequestInterceptor> iterator = interceptors.iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next() instanceof BasicAuthorizationInterceptor) {
+				iterator.remove();
+			}
+		}
+		interceptors.add(0, new BearerTokenInterceptor(bearerToken));
+		result.getRestTemplate().setInterceptors(interceptors);
+    	result.getRestTemplate().setErrorHandler(new CustomErrorHandler());
+    	return result;
+    }
+    
     TestRestTemplate buildTestRestTemplate(RestTemplateBuilder builder) {
     	TestRestTemplate result = new TestRestTemplate(builder);
     	result.getRestTemplate().setErrorHandler(new CustomErrorHandler());
     	return result;
+    }
+    
+    public static class BearerTokenInterceptor implements ClientHttpRequestInterceptor {
+    	
+    	private final String token;
+
+		public BearerTokenInterceptor(String token) {
+			this.token = token;
+		}
+
+		@Override
+		public ClientHttpResponse intercept(HttpRequest request, byte[] body,
+				ClientHttpRequestExecution execution) throws IOException {
+			request.getHeaders().add("Authorization", "Bearer " + token);
+			return execution.execute(request, body);
+		}
+    	
     }
     
     @TestConfiguration

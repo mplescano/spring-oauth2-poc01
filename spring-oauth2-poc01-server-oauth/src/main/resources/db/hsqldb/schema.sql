@@ -16,7 +16,7 @@ create table oauth_client_details (
 drop table if exists oauth_client_token;
 create table oauth_client_token (
   authentication_id VARCHAR(255) PRIMARY KEY,
-  token_id VARCHAR(255),
+  token_id VARCHAR(500),
   token BLOB,
   user_name VARCHAR(255),
   client_id VARCHAR(255)
@@ -25,7 +25,7 @@ create table oauth_client_token (
 drop table if exists oauth_access_token;
 create table oauth_access_token (
   authentication_id VARCHAR(255) PRIMARY KEY,
-  token_id VARCHAR(420),
+  token_id VARCHAR(500),
   token BLOB,
   user_name VARCHAR(255),
   client_id VARCHAR(255),
@@ -35,7 +35,7 @@ create table oauth_access_token (
  
 drop table if exists oauth_refresh_token;
 create table oauth_refresh_token (
-  token_id VARCHAR(420),
+  token_id VARCHAR(500),
   token BLOB,
   authentication BLOB
 );

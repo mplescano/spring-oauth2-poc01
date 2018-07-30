@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.provider.approval.TokenStoreUserAppro
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.FixedDefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -61,6 +62,7 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     	tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer(), accessTokenConverter()));
     	
         endpoints
+        	.tokenServices(tokenServices())
         	.tokenStore(tokenStore())
             //.accessTokenConverter(accessTokenConverter())//if (accessTokenConverter() instanceof JwtAccessTokenConverter) then tokenStore = new JwtTokenStore(accessTokenConverter());
         	.authenticationManager(authenticationManager)
@@ -94,12 +96,14 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     /**/
     @Bean
     @Primary
-    public DefaultTokenServices tokenServices() {
-        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+    public FixedDefaultTokenServices tokenServices() {
+    	final TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+    	tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer(), accessTokenConverter()));
+        final FixedDefaultTokenServices defaultTokenServices = new FixedDefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
         defaultTokenServices.setReuseRefreshToken(true);
-        defaultTokenServices.setTokenEnhancer(tokenEnhancer());
+        defaultTokenServices.setTokenEnhancer(tokenEnhancerChain);
         return defaultTokenServices;
     }
     
