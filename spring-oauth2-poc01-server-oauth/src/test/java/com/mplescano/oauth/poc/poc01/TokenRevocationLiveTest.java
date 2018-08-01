@@ -67,14 +67,15 @@ public class TokenRevocationLiveTest extends Oauth2SupportTest {
 
     @Test
     public void givenUser_whenRevokeRefreshToken_thenRefreshTokenInvalidError() throws Exception {
+        String clientId = "fooClientIdPassword";
         //String accessToken1 = obtainAccessToken("fooClientIdPassword", "user1", "pass");
-        String accessToken2 = obtainAccessToken("fooClientIdPassword", "tom", "111");
+        String accessToken2 = obtainAccessToken(clientId, "tom", "111");
         //authorizeClient("fooClientIdPassword");
 
-        String accessToken3 = obtainRefreshedAccessToken("fooClientIdPassword");
+        String accessToken3 = obtainRefreshedAccessToken(clientId);
         //authorizeClient("fooClientIdPassword");
-        ResponseEntity<String> listTokensResponse = buildTestRestTemplate(restTemplateBuilder, "tom", "111")
-        		.exchange("http://localhost:" + portOauth + "/oauth/token/list", HttpMethod.GET, null, String.class);
+        ResponseEntity<String> listTokensResponse = buildTestRestTemplate(restTemplateBuilder, clientId, "secret")
+        		.exchange("http://localhost:" + portOauth + "/oauth/token/list?client_id=" + clientId, HttpMethod.GET, null, String.class);
         assertEquals(200, listTokensResponse.getStatusCodeValue());
         
         /*

@@ -33,20 +33,31 @@ public class RevokeTokenEndpoint {
     @Resource(name = "tokenStore")
     TokenStore tokenStore;
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/oauth/token/revoke")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/oauth/token")
     @ResponseBody
-    public String revokeToken(@RequestParam("token") String accessToken) {
-    	tokenServices.revokeToken(accessToken);
-    	return accessToken;
+    public String revokeToken(@RequestParam("token") String token, @RequestParam("type") String tokenType) {
+        if ("access_token".equals(tokenType)) {
+            //TODO only the access token
+            tokenServices.revokeToken(token);
+        }
+        else if ("refresh_token".equals(tokenType)) {
+            OAuth2RefreshToken oauth2RefreshToken = tokenStore.readRefreshToken(token);
+            tokenStore.removeRefreshToken(oauth2RefreshToken);
+        }
+        else if ("all".equals(tokenType)) {
+            //TODO
+        }
+
+    	return token;
     }
     
-    @RequestMapping(method = RequestMethod.DELETE, value = "/oauth/token/revoke-refresh")
+    /*@RequestMapping(method = RequestMethod.DELETE, value = "/oauth/token/revoke-refresh")
     @ResponseBody
     public String revokeRefreshToken(@RequestParam("token") String refreshToken) {
     	OAuth2RefreshToken oauth2RefreshToken = tokenStore.readRefreshToken(refreshToken);
     	tokenStore.removeRefreshToken(oauth2RefreshToken);
     	return refreshToken;
-    }
+    }*/
     
     @RequestMapping(method = RequestMethod.GET, value = "/oauth/token/list")
     @ResponseBody
