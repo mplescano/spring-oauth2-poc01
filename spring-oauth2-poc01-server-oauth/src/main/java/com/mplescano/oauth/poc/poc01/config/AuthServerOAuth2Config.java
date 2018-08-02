@@ -73,6 +73,7 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
             //.accessTokenConverter(accessTokenConverter())//if (accessTokenConverter() instanceof JwtAccessTokenConverter) then tokenStore = new JwtTokenStore(accessTokenConverter());
         	.authenticationManager(authenticationManager)
         	.tokenEnhancer(tokenEnhancerChain)//by default tokenEnhancer = accessTokenConverter
+        	.pathMapping("/oauth/token", "/oauth/token/**")
         	;
     }
 

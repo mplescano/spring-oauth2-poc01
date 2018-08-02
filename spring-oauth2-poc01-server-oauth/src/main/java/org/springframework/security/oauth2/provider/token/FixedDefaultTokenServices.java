@@ -72,9 +72,14 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 				tokenStore.removeAccessToken(existingAccessToken);
 			}
 			else {
-				// Re-store the access token in case the authentication has changed
-				tokenStore.storeAccessToken(existingAccessToken, authentication);
-				return existingAccessToken;
+			    if (tokenStore.readRefreshToken(existingAccessToken.getRefreshToken().getValue()) != null) {
+	                // Re-store the access token in case the authentication has changed
+	                tokenStore.storeAccessToken(existingAccessToken, authentication);
+	                return existingAccessToken;
+			    }
+			    else {
+			        tokenStore.removeAccessToken(existingAccessToken);
+			    }
 			}
 		}
 
