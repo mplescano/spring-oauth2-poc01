@@ -12,15 +12,14 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.FixedDefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.FixedJwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 import com.mplescano.oauth.poc.poc01.component.VerifierTokenServices;
-import com.mplescano.oauth.poc.poc01.service.JdbcUserServiceImpl;
+import com.mplescano.oauth.poc.poc01.service.ApiUserServiceImpl;
 
 @Configuration
 @EnableResourceServer
@@ -61,7 +60,7 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 	@Primary
 	@Bean
 	public ResourceServerTokenServices tokenServices() throws Exception {
-		final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+		final FixedDefaultTokenServices defaultTokenServices = new FixedDefaultTokenServices();
 		defaultTokenServices.setTokenStore(new JwtTokenStore(accessTokenConverter()));
 		return new VerifierTokenServices(defaultTokenServices);
 	}
@@ -74,7 +73,7 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
 	
     /*@Bean*/
     private JwtAccessTokenConverter accessTokenConverter() throws Exception {
-        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        JwtAccessTokenConverter converter = new FixedJwtAccessTokenConverter();
         converter.setAccessTokenConverter(new CustomAccessTokenConverter());
         converter.setSigningKey("123");
         converter.afterPropertiesSet();
@@ -91,8 +90,8 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
     }
 	
 	@Bean
-	public JdbcUserServiceImpl userService() {
-		JdbcUserServiceImpl userService = new JdbcUserServiceImpl();
+	public ApiUserServiceImpl userService() {
+		ApiUserServiceImpl userService = new ApiUserServiceImpl();
 		userService.setDataSource(dataSource);
 		userService.setUsernameBasedPrimaryKey(false);
 		return userService;

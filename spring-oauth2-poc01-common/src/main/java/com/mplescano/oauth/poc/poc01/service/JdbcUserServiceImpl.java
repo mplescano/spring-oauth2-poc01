@@ -33,13 +33,10 @@ import org.springframework.util.StringUtils;
 import com.mplescano.oauth.poc.poc01.model.entity.User;
 import com.mplescano.oauth.poc.poc01.model.entity.UserIdDetails;
 
-public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsManager, MessageSourceAware, UserService {
+public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsManager, MessageSourceAware {
 
 	public static final String DEF_USERS_BY_USERNAME_QUERY = "select id,username,password,enabled,roles "
 			+ "from users " + "where username = ?";
-	
-    public static final String DEF_USERS_BY_ID_QUERY = "select id,username,password,enabled,roles "
-            + "from users " + "where id = ?";
 	
 	public static final String DEF_AUTHORITIES_BY_ROLENAME_QUERY = "select authority from authorities where role = ?";
 	
@@ -53,15 +50,11 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	
 	public static final String DEF_USER_EXISTS_SQL = "select username from users where username = ?";
 	
-	public static final String DEF_ALL_USERS_SQL = "select username from users";
-	
 	protected MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
 	private boolean enableAuthorities = true;
 	
 	private String usersByUsernameQuery;
-	
-	private String usersByIdQuery;
 	
 	private String authoritiesByRolenameQuery;
 	
@@ -75,15 +68,12 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	
 	private String userExistsSql = DEF_USER_EXISTS_SQL;
 	
-	private String allUserListSql = DEF_ALL_USERS_SQL;
-	
 	private boolean usernameBasedPrimaryKey = true;
 	
 	private AuthenticationManager authenticationManager;
 	
 	public JdbcUserServiceImpl() {
 		this.usersByUsernameQuery = DEF_USERS_BY_USERNAME_QUERY;
-		this.usersByIdQuery = DEF_USERS_BY_ID_QUERY;
 		this.authoritiesByRolenameQuery = DEF_AUTHORITIES_BY_ROLENAME_QUERY;
 	}
 
@@ -142,7 +132,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 				new String[] { username }, rowMapperUser());
 	}
 
-    private RowMapper<UserIdDetails> rowMapperUser() {
+    protected RowMapper<UserIdDetails> rowMapperUser() {
         return new RowMapper<UserIdDetails>() {
         	@Override
         	public UserIdDetails mapRow(ResultSet rs, int rowNum)
@@ -379,52 +369,4 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	public void setAuthenticationManager(AuthenticationManager authenticationManager) {
 		this.authenticationManager = authenticationManager;
 	}
-
-    @Override
-    public User findById(long id) {
-        return (User) getJdbcTemplate().queryForObject(this.usersByIdQuery,
-                new Long[] { id }, rowMapperUser());
-    }
-
-    @Override
-    public User findByName(String name) {
-        return (User) loadUserByUsername(name);
-    }
-
-    @Override
-    public void saveUser(User user) {
-        createUser(user);
-    }
-
-    @Override
-    public void updateUser(User user) {
-        updateUser((UserDetails) user);
-    }
-
-    @Override
-    public void deleteUserById(long id) {
-        
-    }
-
-    @Override
-    public List<User> findAllUsers() {
-        List<User> userList = new ArrayList<>();
-        List<String> usernameList = getJdbcTemplate().queryForList(allUserListSql, String.class);
-        for (String username : usernameList) {
-            userList.add((User) loadUserByUsername(username));
-        }
-
-        return userList;
-    }
-
-    @Override
-    public void deleteAllUsers() {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public boolean isUserExist(User user) {
-         return userExists(user.getUsername());
-    }
 }

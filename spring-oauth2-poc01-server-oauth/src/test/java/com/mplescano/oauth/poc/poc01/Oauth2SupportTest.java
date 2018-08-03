@@ -171,7 +171,7 @@ public class Oauth2SupportTest {
         		messageConverters.add(new FormHttpMessageConverter());
         				
         	RestTemplateBuilder builder = new RestTemplateBuilder();
-        	builder = builder.requestFactory(() -> new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory() {{setOutputStreaming(false);}}))
+        	builder = builder.requestFactory(() -> new BufferingClientHttpRequestFactory(new CustomSimpleClientHttpRequestFactory() {{setOutputStreaming(false); setFollowRedirect(false);}}))
         			.interceptors(new LoggingRequestInterceptor()).messageConverters(messageConverters).errorHandler(new CustomErrorHandler());
         	return builder;
         }

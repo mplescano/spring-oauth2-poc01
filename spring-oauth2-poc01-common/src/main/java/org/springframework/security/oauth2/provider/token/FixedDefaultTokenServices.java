@@ -47,16 +47,14 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	private AuthenticationManager authenticationManager;
 
 	/**
-	 * Initialize these token services. If no random generator is set, one will be
-	 * created.
+	 * Initialize these token services. If no random generator is set, one will be created.
 	 */
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(tokenStore, "tokenStore must be set");
 	}
 
 	@Transactional
-	public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication)
-			throws AuthenticationException {
+	public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException {
 
 		OAuth2AccessToken existingAccessToken = tokenStore.getAccessToken(authentication);
 		OAuth2RefreshToken refreshToken = null;
@@ -111,41 +109,32 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 
 	}
 
-	@Transactional(noRollbackFor = { InvalidTokenException.class,
-			InvalidGrantException.class })
-	public OAuth2AccessToken refreshAccessToken(String refreshTokenValue,
-			TokenRequest tokenRequest) throws AuthenticationException {
+	@Transactional(noRollbackFor={InvalidTokenException.class, InvalidGrantException.class})
+	public OAuth2AccessToken refreshAccessToken(String refreshTokenValue, TokenRequest tokenRequest)
+			throws AuthenticationException {
 
 		if (!supportRefreshToken) {
-			throw new InvalidGrantException(
-					"Invalid refresh token: " + refreshTokenValue);
+			throw new InvalidGrantException("Invalid refresh token: " + refreshTokenValue);
 		}
 
 		OAuth2RefreshToken refreshToken = tokenStore.readRefreshToken(refreshTokenValue);
 		if (refreshToken == null) {
-			throw new InvalidGrantException(
-					"Invalid refresh token: " + refreshTokenValue);
+			throw new InvalidGrantException("Invalid refresh token: " + refreshTokenValue);
 		}
 
-		OAuth2Authentication authentication = tokenStore
-				.readAuthenticationForRefreshToken(refreshToken);
+		OAuth2Authentication authentication = tokenStore.readAuthenticationForRefreshToken(refreshToken);
 		if (this.authenticationManager != null && !authentication.isClientOnly()) {
-			// The client has already been authenticated, but the user authentication
-			// might be old now, so give it a
+			// The client has already been authenticated, but the user authentication might be old now, so give it a
 			// chance to re-authenticate.
-			Authentication user = new PreAuthenticatedAuthenticationToken(
-					authentication.getUserAuthentication(), "",
-					authentication.getAuthorities());
+			Authentication user = new PreAuthenticatedAuthenticationToken(authentication.getUserAuthentication(), "", authentication.getAuthorities());
 			user = authenticationManager.authenticate(user);
 			Object details = authentication.getDetails();
-			authentication = new OAuth2Authentication(authentication.getOAuth2Request(),
-					user);
+			authentication = new OAuth2Authentication(authentication.getOAuth2Request(), user);
 			authentication.setDetails(details);
 		}
 		String clientId = authentication.getOAuth2Request().getClientId();
 		if (clientId == null || !clientId.equals(tokenRequest.getClientId())) {
-			throw new InvalidGrantException(
-					"Wrong client for this refresh token: " + refreshTokenValue);
+			throw new InvalidGrantException("Wrong client for this refresh token: " + refreshTokenValue);
 		}
 
 		// clear out any access tokens already associated with the refresh
@@ -154,22 +143,17 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 
 		if (isExpired(refreshToken)) {
 			tokenStore.removeRefreshToken(refreshToken);
-			throw new InvalidTokenException(
-					"Invalid refresh token (expired): " + refreshToken);
+			throw new InvalidTokenException("Invalid refresh token (expired): " + refreshToken);
 		}
 
 		authentication = createRefreshedAuthentication(authentication, tokenRequest);
 
-		OAuth2AccessToken accessToken = null;
 		if (!reuseRefreshToken) {
 			tokenStore.removeRefreshToken(refreshToken);
 			refreshToken = createRefreshToken(authentication);
-			accessToken = createAccessToken(authentication, refreshToken);
 		}
-		else {
-			accessToken = createAccessTokenReusingRefreshToken(authentication, refreshToken);
-		}
-		
+
+		OAuth2AccessToken accessToken = createAccessToken(authentication, refreshToken);
 		tokenStore.storeAccessToken(accessToken, authentication);
 		if (!reuseRefreshToken) {
 			tokenStore.storeRefreshToken(accessToken.getRefreshToken(), authentication);
@@ -187,36 +171,31 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	 * @param authentication The authentication.
 	 * @param request The scope for the refreshed token.
 	 * @return The refreshed authentication.
-	 * @throws InvalidScopeException If the scope requested is invalid or wider than the
-	 * original scope.
+	 * @throws InvalidScopeException If the scope requested is invalid or wider than the original scope.
 	 */
-	private OAuth2Authentication createRefreshedAuthentication(
-			OAuth2Authentication authentication, TokenRequest request) {
+	private OAuth2Authentication createRefreshedAuthentication(OAuth2Authentication authentication, TokenRequest request) {
 		OAuth2Authentication narrowed = authentication;
 		Set<String> scope = request.getScope();
 		OAuth2Request clientAuth = authentication.getOAuth2Request().refresh(request);
 		if (scope != null && !scope.isEmpty()) {
 			Set<String> originalScope = clientAuth.getScope();
 			if (originalScope == null || !originalScope.containsAll(scope)) {
-				throw new InvalidScopeException(
-						"Unable to narrow the scope of the client authentication to "
-								+ scope + ".",
-						originalScope);
+				throw new InvalidScopeException("Unable to narrow the scope of the client authentication to " + scope
+						+ ".", originalScope);
 			}
 			else {
 				clientAuth = clientAuth.narrowScope(scope);
 			}
 		}
-		narrowed = new OAuth2Authentication(clientAuth,
-				authentication.getUserAuthentication());
+		narrowed = new OAuth2Authentication(clientAuth, authentication.getUserAuthentication());
 		return narrowed;
 	}
 
 	protected boolean isExpired(OAuth2RefreshToken refreshToken) {
 		if (refreshToken instanceof ExpiringOAuth2RefreshToken) {
 			ExpiringOAuth2RefreshToken expiringToken = (ExpiringOAuth2RefreshToken) refreshToken;
-			return expiringToken.getExpiration() == null || System
-					.currentTimeMillis() > expiringToken.getExpiration().getTime();
+			return expiringToken.getExpiration() == null
+					|| System.currentTimeMillis() > expiringToken.getExpiration().getTime();
 		}
 		return false;
 	}
@@ -225,8 +204,8 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 		return tokenStore.readAccessToken(accessToken);
 	}
 
-	public OAuth2Authentication loadAuthentication(String accessTokenValue)
-			throws AuthenticationException, InvalidTokenException {
+	public OAuth2Authentication loadAuthentication(String accessTokenValue) throws AuthenticationException,
+			InvalidTokenException {
 		OAuth2AccessToken accessToken = tokenStore.readAccessToken(accessTokenValue);
 		if (accessToken == null) {
 			throw new InvalidTokenException("Invalid access token: " + accessTokenValue);
@@ -260,8 +239,7 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 		}
 		OAuth2Request clientAuth = authentication.getOAuth2Request();
 		if (clientAuth == null) {
-			throw new InvalidTokenException(
-					"Invalid access token (no client id): " + tokenValue);
+			throw new InvalidTokenException("Invalid access token (no client id): " + tokenValue);
 		}
 		return clientAuth.getClientId();
 	}
@@ -282,32 +260,25 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 		if (!isSupportRefreshToken(authentication.getOAuth2Request())) {
 			return null;
 		}
-		int validitySeconds = getRefreshTokenValiditySeconds(
-				authentication.getOAuth2Request());
+		int validitySeconds = getRefreshTokenValiditySeconds(authentication.getOAuth2Request());
 		String value = UUID.randomUUID().toString();
 		if (validitySeconds > 0) {
-			return new DefaultExpiringOAuth2RefreshToken(value,
-					new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
+			return new DefaultExpiringOAuth2RefreshToken(value, new Date(System.currentTimeMillis()
+					+ (validitySeconds * 1000L)));
 		}
 		return new DefaultOAuth2RefreshToken(value);
 	}
 
-	private OAuth2AccessToken createAccessToken(OAuth2Authentication authentication,
-			OAuth2RefreshToken refreshToken) {
-		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(
-				UUID.randomUUID().toString());
-		int validitySeconds = getAccessTokenValiditySeconds(
-				authentication.getOAuth2Request());
+	private OAuth2AccessToken createAccessToken(OAuth2Authentication authentication, OAuth2RefreshToken refreshToken) {
+		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(UUID.randomUUID().toString());
+		int validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());
 		if (validitySeconds > 0) {
-			token.setExpiration(
-					new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
+			token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
 		}
 		token.setRefreshToken(refreshToken);
 		token.setScope(authentication.getOAuth2Request().getScope());
 
-		return accessTokenEnhancer != null
-				? accessTokenEnhancer.enhance(token, authentication)
-				: token;
+		return accessTokenEnhancer != null ? accessTokenEnhancer.enhance(token, authentication) : token;
 	}
 
 	/**
@@ -318,8 +289,7 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	 */
 	protected int getAccessTokenValiditySeconds(OAuth2Request clientAuth) {
 		if (clientDetailsService != null) {
-			ClientDetails client = clientDetailsService
-					.loadClientByClientId(clientAuth.getClientId());
+			ClientDetails client = clientDetailsService.loadClientByClientId(clientAuth.getClientId());
 			Integer validity = client.getAccessTokenValiditySeconds();
 			if (validity != null) {
 				return validity;
@@ -336,8 +306,7 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	 */
 	protected int getRefreshTokenValiditySeconds(OAuth2Request clientAuth) {
 		if (clientDetailsService != null) {
-			ClientDetails client = clientDetailsService
-					.loadClientByClientId(clientAuth.getClientId());
+			ClientDetails client = clientDetailsService.loadClientByClientId(clientAuth.getClientId());
 			Integer validity = client.getRefreshTokenValiditySeconds();
 			if (validity != null) {
 				return validity;
@@ -348,24 +317,21 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 
 	/**
 	 * Is a refresh token supported for this client (or the global setting if
-	 * {@link #setClientDetailsService(ClientDetailsService) clientDetailsService} is not
-	 * set.
+	 * {@link #setClientDetailsService(ClientDetailsService) clientDetailsService} is not set.
 	 * 
 	 * @param clientAuth the current authorization request
 	 * @return boolean to indicate if refresh token is supported
 	 */
 	protected boolean isSupportRefreshToken(OAuth2Request clientAuth) {
 		if (clientDetailsService != null) {
-			ClientDetails client = clientDetailsService
-					.loadClientByClientId(clientAuth.getClientId());
+			ClientDetails client = clientDetailsService.loadClientByClientId(clientAuth.getClientId());
 			return client.getAuthorizedGrantTypes().contains("refresh_token");
 		}
 		return this.supportRefreshToken;
 	}
 
 	/**
-	 * An access token enhancer that will be applied to a new token before it is saved in
-	 * the token store.
+	 * An access token enhancer that will be applied to a new token before it is saved in the token store.
 	 * 
 	 * @param accessTokenEnhancer the access token enhancer to set
 	 */
@@ -374,8 +340,8 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	}
 
 	/**
-	 * The validity (in seconds) of the refresh token. If less than or equal to zero then
-	 * the tokens will be non-expiring.
+	 * The validity (in seconds) of the refresh token. If less than or equal to zero then the tokens will be
+	 * non-expiring.
 	 * 
 	 * @param refreshTokenValiditySeconds The validity (in seconds) of the refresh token.
 	 */
@@ -384,9 +350,9 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	}
 
 	/**
-	 * The default validity (in seconds) of the access token. Zero or negative for
-	 * non-expiring tokens. If a client details service is set the validity period will be
-	 * read from the client, defaulting to this value if not defined by the client.
+	 * The default validity (in seconds) of the access token. Zero or negative for non-expiring tokens. If a client
+	 * details service is set the validity period will be read from the client, defaulting to this value if not defined
+	 * by the client.
 	 * 
 	 * @param accessTokenValiditySeconds The validity (in seconds) of the access token.
 	 */
@@ -422,8 +388,8 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	}
 
 	/**
-	 * An authentication manager that will be used (if provided) to check the user
-	 * authentication when a token is refreshed.
+	 * An authentication manager that will be used (if provided) to check the user authentication when a token is
+	 * refreshed.
 	 * 
 	 * @param authenticationManager the authenticationManager to set
 	 */
@@ -432,9 +398,8 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 	}
 
 	/**
-	 * The client details service to use for looking up clients (if necessary). Optional
-	 * if the access token expiry is set globally via
-	 * {@link #setAccessTokenValiditySeconds(int)}.
+	 * The client details service to use for looking up clients (if necessary). Optional if the access token expiry is
+	 * set globally via {@link #setAccessTokenValiditySeconds(int)}.
 	 * 
 	 * @param clientDetailsService the client details service
 	 */
@@ -442,24 +407,4 @@ public class FixedDefaultTokenServices implements AuthorizationServerTokenServic
 		this.clientDetailsService = clientDetailsService;
 	}
 
-	private OAuth2AccessToken createAccessTokenReusingRefreshToken(
-			OAuth2Authentication authentication, OAuth2RefreshToken refreshToken) {
-		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(
-				UUID.randomUUID().toString());
-		int validitySeconds = getAccessTokenValiditySeconds(
-				authentication.getOAuth2Request());
-		if (validitySeconds > 0) {
-			token.setExpiration(
-					new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
-		}
-		token.setScope(authentication.getOAuth2Request().getScope());
-
-		token = accessTokenEnhancer != null
-				? (DefaultOAuth2AccessToken) accessTokenEnhancer.enhance(token, authentication)
-				: token;
-
-		token.setRefreshToken(refreshToken);
-
-		return token;
-	}
 }

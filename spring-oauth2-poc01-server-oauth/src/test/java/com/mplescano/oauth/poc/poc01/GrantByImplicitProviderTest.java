@@ -31,32 +31,38 @@ public class GrantByImplicitProviderTest extends Oauth2SupportTest {
         ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, userName, password)
         		.getForEntity("http://localhost:" + portOauth + "/oauth/authorize?response_type=token&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", 
         		        String.class, redirectUrl);
-        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<String> setCookie = response.getHeaders().get("Set-Cookie");
-        String jSessionIdCookie = setCookie.get(0);
-        String cookieValue = jSessionIdCookie.split(";")[0];
+        String location = null;
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+            List<String> setCookie = response.getHeaders().get("Set-Cookie");
+            String jSessionIdCookie = setCookie.get(0);
+            String cookieValue = jSessionIdCookie.split(";")[0];
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.add("Cookie", cookieValue);
-        //Map<String, String> body = new HashMap<>();
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.set("scope.read", "true");
-        body.set("scope.write", "true");
-        body.set("user_oauth_approval", "true");
-        body.set("authorize", "Authorize");
-        /*body.put("scope.read", "true");
-        body.put("scope.write", "true");
-        body.put("user_oauth_approval", "true");
-        body.put("authorize", "Authorize");*/
-        response = buildTestRestTemplate(restTemplateBuilder, userName, password)
-        		.postForEntity("http://localhost:" + portOauth + "/oauth/authorize?response_type=token&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}",
-        		        new HttpEntity<MultiValueMap<String, String>>(body, headers)
-        		        /*new HttpEntity<Map<String, String>>(body, headers)*/, String.class, redirectUrl);
-        //&user_oauth_approval=true&authorize=Authorize
-        Assert.assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        Assert.assertNull(response.getBody());
-        String location = response.getHeaders().get("Location").get(0);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.add("Cookie", cookieValue);
+            //Map<String, String> body = new HashMap<>();
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.set("scope.read", "true");
+            body.set("scope.write", "true");
+            body.set("user_oauth_approval", "true");
+            body.set("authorize", "Authorize");
+            /*body.put("scope.read", "true");
+            body.put("scope.write", "true");
+            body.put("user_oauth_approval", "true");
+            body.put("authorize", "Authorize");*/
+            response = buildTestRestTemplate(restTemplateBuilder, userName, password)
+            		.postForEntity("http://localhost:" + portOauth + "/oauth/authorize?response_type=token&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}",
+            		        new HttpEntity<MultiValueMap<String, String>>(body, headers)
+            		        /*new HttpEntity<Map<String, String>>(body, headers)*/, String.class, redirectUrl);
+            //&user_oauth_approval=true&authorize=Authorize
+            Assert.assertEquals(HttpStatus.FOUND, response.getStatusCode());
+            Assert.assertNull(response.getBody());
+            location = response.getHeaders().get("Location").get(0);
+        }
+        else if (response.getStatusCode() == HttpStatus.FOUND) {
+        	location = response.getHeaders().get("Location").get(0);
+        }
 
         //FIXME: Is this a bug with redirect URL?
         location = location.replace("#", "?");
