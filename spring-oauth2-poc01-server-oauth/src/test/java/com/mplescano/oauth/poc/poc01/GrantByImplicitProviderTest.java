@@ -28,10 +28,9 @@ public class GrantByImplicitProviderTest extends Oauth2SupportTest {
         String userName = "bob";//ROLE_USER
         String password = "abc123";
         String redirectUrl = "http://localhost:" + portApi + "/resources/user";
-        HttpHeaders authHeaders = new HttpHeaders();
         ResponseEntity<String> response = buildTestRestTemplate(restTemplateBuilder, userName, password)
-        		.postForEntity("http://localhost:" + portOauth + "/oauth/authorize?response_type=token&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", 
-        		        new HttpEntity<>(authHeaders), String.class,redirectUrl);
+        		.getForEntity("http://localhost:" + portOauth + "/oauth/authorize?response_type=token&client_id=" + CLIENT_ID_01 + "&redirect_uri={redirectUrl}", 
+        		        String.class, redirectUrl);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         List<String> setCookie = response.getHeaders().get("Set-Cookie");
         String jSessionIdCookie = setCookie.get(0);
