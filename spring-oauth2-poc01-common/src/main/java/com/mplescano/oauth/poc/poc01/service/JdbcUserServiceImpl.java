@@ -35,6 +35,8 @@ import com.mplescano.oauth.poc.poc01.model.entity.UserIdDetails;
 
 public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsManager, MessageSourceAware {
 
+	private static final String PREFIX_ROLE = "ROLE_";
+
 	public static final String DEF_USERS_BY_USERNAME_QUERY = "select id,username,password,enabled,roles "
 			+ "from users " + "where username = ?";
 	
@@ -46,7 +48,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	
 	public static final String DEF_DELETE_USER_SQL = "delete from users where username = ?";
 	
-	public static final String DEF_CHANGE_PASSWORD_SQL = "update users set password = ? where username = ?";
+	public static final String DEF_CHANGE_PASS_SQL = "update users set password = ? where username = ?";
 	
 	public static final String DEF_USER_EXISTS_SQL = "select username from users where username = ?";
 	
@@ -64,7 +66,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	
 	private String deleteUserSql = DEF_DELETE_USER_SQL;
 	
-	private String changePasswordSql = DEF_CHANGE_PASSWORD_SQL;
+	private String changePasswordSql = DEF_CHANGE_PASS_SQL;
 	
 	private String userExistsSql = DEF_USER_EXISTS_SQL;
 	
@@ -87,7 +89,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	public UserIdDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		List<UserIdDetails> users = loadUsersByUsername(username);
 
-		if (users.size() == 0) {
+		if (users.isEmpty()) {
 			this.logger.debug("Query returned no results for user '" + username + "'");
 
 			throw new UsernameNotFoundException(
@@ -97,7 +99,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 
 		UserIdDetails user = users.get(0); // contains no GrantedAuthority[]
 
-		Set<GrantedAuthority> dbAuthsSet = new HashSet<GrantedAuthority>();
+		Set<GrantedAuthority> dbAuthsSet = new HashSet<>();
 
 		if (this.enableAuthorities) {
 			dbAuthsSet.addAll(user.getAuthorities());
@@ -107,11 +109,11 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 			
 		}
 
-		List<GrantedAuthority> dbAuths = new ArrayList<GrantedAuthority>(dbAuthsSet);
+		List<GrantedAuthority> dbAuths = new ArrayList<>(dbAuthsSet);
 
 		addCustomAuthorities(user.getUsername(), dbAuths);
 
-		if (dbAuths.size() == 0) {
+		if (dbAuths.isEmpty()) {
 			this.logger.debug("User '" + username
 					+ "' has no authorities and will be treated as 'not found'");
 
@@ -200,6 +202,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 	 * <code>authoritiesByUsername</code> mapping
 	 */
 	protected void addCustomAuthorities(String username, List<GrantedAuthority> authorities) {
+		//to be overridden
 	}
 	
 	@Override
@@ -207,7 +210,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 		validateUserDetails(user);
 		StringBuilder stbRoles = new StringBuilder();
 		for (GrantedAuthority authority : user.getAuthorities()) {
-			if (authority.getAuthority().startsWith("ROLE_")) {
+			if (authority.getAuthority().startsWith(PREFIX_ROLE)) {
 				stbRoles.append(authority.getAuthority()).append(",");
 			}
 		}
@@ -228,8 +231,8 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 
 	private void insertUserAuthorities(UserDetails user) {
 		for (GrantedAuthority auth : user.getAuthorities()) {
-			if (!auth.getAuthority().startsWith("ROLE_")) {
-				//TODO ensure the authority belongs to that role
+			if (!auth.getAuthority().startsWith(PREFIX_ROLE)) {
+				//Ensure the authority belongs to that role
 			}
 		}
 	}
@@ -239,7 +242,7 @@ public class JdbcUserServiceImpl extends JdbcDaoSupport implements UserDetailsMa
 		validateUserDetails(user);
 		StringBuilder stbRoles = new StringBuilder();
 		for (GrantedAuthority authority : user.getAuthorities()) {
-			if (authority.getAuthority().startsWith("ROLE_")) {
+			if (authority.getAuthority().startsWith(PREFIX_ROLE)) {
 				stbRoles.append(authority.getAuthority()).append(",");
 			}
 		}
