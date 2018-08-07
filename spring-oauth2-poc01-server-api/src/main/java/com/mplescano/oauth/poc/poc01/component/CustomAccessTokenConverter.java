@@ -1,4 +1,4 @@
-package com.mplescano.oauth.poc.poc01.config;
+package com.mplescano.oauth.poc.poc01.component;
 
 import java.util.Map;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;

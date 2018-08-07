@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.provider.token.store.FixedJwtAccessTo
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import com.mplescano.oauth.poc.poc01.component.CustomAccessTokenConverter;
 import com.mplescano.oauth.poc.poc01.component.VerifierTokenServices;
 import com.mplescano.oauth.poc.poc01.service.ApiUserServiceImpl;
 
